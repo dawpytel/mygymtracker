@@ -1,0 +1,10 @@
+## BACKEND
+
+### Guidelines for NODE
+
+#### NEST
+
+- Use dependency injection for services to improve testability and maintainability following SOLID principles
+- Implement custom decorators for cross-cutting concerns to keep code DRY and maintain separation of business logic
+- Implement domain-driven design with modules that encapsulate related functionality and maintain clear boundaries
+- Use TypeORM or Mongoose with repository patterns to abstract database operations and simplify testing with mocks
