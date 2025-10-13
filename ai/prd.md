@@ -1,293 +1,293 @@
-# Dokument wymagań produktu (PRD) - MyWorkout
+# Product Requirements Document (PRD) - MyWorkout
 
-## 1. Przegląd produktu
+## 1. Product Overview
 
-MyWorkout to internetowa aplikacja do śledzenia treningów, zaprojektowana dla doświadczonych entuzjastów fitness, którzy samodzielnie programują swoje treningi i potrzebują prostego, ale skutecznego narzędzia do monitorowania swoich postępów. Aplikacja koncentruje się na dostarczaniu podstawowych funkcji bez zbędnych dodatków, które często spotyka się w aplikacjach skierowanych do początkujących. MVP (Minimum Viable Product) ma na celu zapewnienie kluczowych funkcjonalności, takich jak tworzenie planów treningowych, rejestrowanie wykonanych treningów, przeglądanie historii oraz inteligentne podpowiedzi dotyczące techniki ćwiczeń, wspierane przez AI.
-
-Grupą docelową są osoby, takie jak trójboiści siłowi i kulturyści, którzy posiadają wiedzę na temat programowania treningowego i potrzebują narzędzia do śledzenia, a nie do prowadzenia.
+MyWorkout is a web-based workout tracking application designed for experienced fitness enthusiasts who program their own workouts and need a simple yet effective tool to monitor their progress. The application focuses on delivering core functionality without unnecessary features often found in beginner-oriented apps. The MVP (Minimum Viable Product) aims to provide key functionalities such as creating workout plans, logging completed workouts, viewing history, and intelligent exercise technique suggestions powered by AI.
+
+The target audience includes individuals such as powerlifters and bodybuilders who have knowledge of training programming and need a tool for tracking, not guidance.
 
-## 2. Problem użytkownika
-
-Większość dostępnych na rynku aplikacji do śledzenia treningów jest przeznaczona dla osób, które nie wiedzą, jak powinien wyglądać ich plan treningowy, oferując gotowe szablony i porady. Z kolei doświadczeni użytkownicy, którzy potrafią samodzielnie tworzyć plany treningowe, potrzebują jedynie prostego i efektywnego sposobu na śledzenie swoich sesji i postępów. Obecne rozwiązania są dla nich zbyt skomplikowane, przeładowane funkcjami i niepotrzebnie ograniczające. MyWorkout rozwiązuje ten problem, dostarczając minimalistyczne narzędzie skupione wyłącznie na śledzeniu danych treningowych.
+## 2. User Problem
+
+Most workout tracking applications available on the market are designed for people who don't know what their training plan should look like, offering ready-made templates and advice. However, experienced users who can independently create training plans only need a simple and efficient way to track their sessions and progress. Current solutions are too complex, feature-heavy, and unnecessarily restrictive for them. MyWorkout solves this problem by providing a minimalist tool focused solely on tracking training data.
 
-## 3. Wymagania funkcjonalne
-
-### 3.1. System kont użytkowników
+## 3. Functional Requirements
+
+### 3.1. User Account System
 
-- Uwierzytelnianie za pomocą adresu e-mail i hasła.
-- Opcjonalne uwierzytelnianie przez dostawców OAuth (Google, Apple).
-- Profil użytkownika przechowuje e-mail, datę utworzenia konta i datę ostatniego logowania.
-- Adres e-mail jest używany do identyfikacji użytkownika, nie jest wymagana nazwa użytkownika.
+- Authentication via email and password.
+- Optional authentication through OAuth providers (Google, Apple).
+- User profile stores email, account creation date, and last login date.
+- Email address is used for user identification; username is not required.
 
-### 3.2. Tryb Planu - Tworzenie planów treningowych
-
-- Użytkownik może tworzyć, edytować i usuwać plany treningowe.
-- Każdy użytkownik może mieć nieograniczoną liczbę planów.
-- Każdy plan może zawierać nieograniczoną liczbę ćwiczeń.
-- Plany działają jak szablony do wielokrotnego użytku.
-- Każde ćwiczenie w planie musi mieć zdefiniowane:
-  - Nazwę ćwiczenia (wybieraną z predefiniowanej listy).
-  - Technikę intensywności (drop set, pauza, częściowe wydłużone, do upadku, superseria, N/A).
-  - Liczbę serii rozgrzewkowych (wymagane, numeryczne).
-  - Liczbę serii roboczych (wymagane, numeryczne, maks. 4).
-  - Docelową liczbę powtórzeń na serię (wymagane, numeryczne).
-  - RPE dla wczesnych serii (wymagane, skala 1-10).
-  - RPE dla ostatniej serii (wymagane, skala 1-10).
-  - Czas odpoczynku w sekundach (wymagane, numeryczne).
-  - Opcjonalne notatki (maks. 500 znaków).
-
-### 3.3. Tryb Treningu - Realizacja treningu
-
-- Użytkownik wybiera plan treningowy z listy, aby rozpocząć sesję.
-- Ćwiczenia są wyświetlane w kolejności z planu, ale można je wykonywać w dowolnej sekwencji.
-- Dla każdego ćwiczenia interfejs wyświetla:
-  - Nazwę ćwiczenia wraz z automatycznie rozwiniętym (ale zwijanym) opisem techniki od AI.
-  - Docelowe wartości RPE i czas odpoczynku (tylko do odczytu).
-  - Historię 3-5 ostatnich wyników dla danego ćwiczenia (widok zwijany).
-  - Pola do wprowadzania faktycznej liczby powtórzeń i obciążenia (w kg, z dokładnością do jednego miejsca po przecinku).
-- Zapis treningu odbywa się manualnie; brak funkcji auto-zapisu.
-- Możliwy jest zapis częściowo ukończonego treningu.
-
-### 3.4. Historia treningów
-
-- Ukończone treningi są wyświetlane na chronologicznej liście (data i nazwa planu).
-- Kliknięcie na wpis w historii wyświetla pełne szczegóły danego treningu.
-- Użytkownik ma możliwość edycji lub usunięcia każdego zapisanego treningu.
-
-### 3.5. Baza danych ćwiczeń i opisy AI
-
-- Aplikacja zawiera predefiniowaną listę 100-150 popularnych ćwiczeń siłowych.
-- Wyszukiwarka z autouzupełnianiem ułatwia znalezienie ćwiczenia.
-- MVP nie wspiera dodawania własnych ćwiczeń.
-- Opisy techniki generowane przez AI są wyświetlane automatycznie po wybraniu ćwiczenia.
-
-### 3.6. Walidacja danych
-
-- Pola numeryczne (powtórzenia, serie, obciążenie) muszą akceptować tylko odpowiednie wartości.
-- Nazwa planu oraz dodanie co najmniej jednego ćwiczenia są wymagane do zapisania planu.
-- Obowiązują limity znaków: 100 dla nazwy planu, 500 dla notatek.
-
-## 4. Granice produktu
-
-Następujące funkcje nie wchodzą w zakres MVP:
-
-- Natywne aplikacje mobilne (iOS/Android).
-- Funkcje kopiowania/duplikowania planów treningowych.
-- Wizualizacje postępów i analityka.
-- Obliczanie objętości treningowej.
-- Funkcjonalność offline (PWA).
-- Możliwość tworzenia własnych ćwiczeń przez użytkownika.
-- System zbierania opinii od użytkowników.
-- Automatyczne zapisywanie treningu.
-- Konwersja jednostek (np. na funty).
-- Planowanie treningów w ujęciu tygodniowym/miesięcznym.
-- Funkcje społecznościowe.
-- System płatności/subskrypcji.
-
-## 5. Historyjki użytkowników
-
-### Uwierzytelnianie
-
-- ID: US-001
-- Tytuł: Rejestracja użytkownika za pomocą e-maila i hasła
-- Opis: Jako nowy użytkownik, chcę móc zarejestrować konto za pomocą mojego adresu e-mail i hasła, abym mógł uzyskać dostęp do aplikacji i zapisywać swoje dane.
-- Kryteria akceptacji:
-
-  1. Formularz rejestracji zawiera pola na adres e-mail i hasło.
-  2. Istnieje walidacja formatu adresu e-mail.
-  3. Hasło musi spełniać minimalne wymagania bezpieczeństwa (np. długość).
-  4. System sprawdza, czy e-mail nie jest już zarejestrowany.
-  5. Po pomyślnej rejestracji użytkownik jest automatycznie zalogowany i przekierowany do głównego panelu aplikacji.
-
-- ID: US-002
-- Tytuł: Logowanie użytkownika za pomocą e-maila i hasła
-- Opis: Jako zarejestrowany użytkownik, chcę móc zalogować się na moje konto za pomocą e-maila i hasła, abym mógł kontynuować śledzenie moich treningów.
-- Kryteria akceptacji:
-
-  1. Formularz logowania zawiera pola na adres e-mail i hasło.
-  2. W przypadku podania błędnych danych uwierzytelniających, wyświetlany jest stosowny komunikat.
-  3. Po pomyślnym zalogowaniu, użytkownik jest przekierowany do głównego panelu aplikacji.
-
-- ID: US-003
-- Tytuł: Logowanie za pomocą konta Google
-- Opis: Jako użytkownik, chcę mieć możliwość zalogowania się za pomocą mojego konta Google, aby proces logowania był szybszy i wygodniejszy.
-- Kryteria akceptacji:
-
-  1. Na stronie logowania znajduje się przycisk "Zaloguj się z Google".
-  2. Po kliknięciu, następuje przekierowanie do standardowego procesu uwierzytelniania Google.
-  3. Po pomyślnym uwierzytelnieniu, użytkownik jest zalogowany w aplikacji MyWorkout.
-  4. Jeśli jest to pierwsze logowanie danym kontem Google, w systemie tworzone jest nowe konto użytkownika.
-
-- ID: US-004
-- Tytuł: Logowanie za pomocą konta Apple
-- Opis: Jako użytkownik, chcę mieć możliwość zalogowania się za pomocą mojego konta Apple, aby proces logowania był szybszy i wygodniejszy.
-- Kryteria akceptacji:
-
-  1. Na stronie logowania znajduje się przycisk "Zaloguj się z Apple".
-  2. Po kliknięciu, następuje przekierowanie do standardowego procesu uwierzytelniania Apple.
-  3. Po pomyślnym uwierzytelnieniu, użytkownik jest zalogowany w aplikacji MyWorkout.
-  4. Jeśli jest to pierwsze logowanie danym kontem Apple, w systemie tworzone jest nowe konto użytkownika.
-
-- ID: US-005
-- Tytuł: Wylogowanie z aplikacji
-- Opis: Jako zalogowany użytkownik, chcę móc się wylogować z mojego konta, aby zabezpieczyć moje dane na urządzeniach współdzielonych.
-- Kryteria akceptacji:
-  1. W interfejsie użytkownika dostępny jest przycisk "Wyloguj".
-  2. Po kliknięciu przycisku, sesja użytkownika jest kończona, a on sam zostaje przekierowany na stronę logowania.
-
-### Zarządzanie Planami Treningowymi
-
-- ID: US-006
-- Tytuł: Przeglądanie listy planów treningowych
-- Opis: Jako użytkownik, chcę widzieć listę wszystkich moich planów treningowych, abym mógł łatwo zarządzać nimi lub wybrać jeden do rozpoczęcia treningu.
-- Kryteria akceptacji:
-
-  1. Po przejściu do "Trybu Planu" wyświetlana jest lista wszystkich utworzonych przez użytkownika planów.
-  2. Jeśli użytkownik nie ma żadnych planów, wyświetlany jest komunikat "Brak planów" oraz przycisk wzywający do działania (CTA) "Stwórz nowy plan".
-
-- ID: US-007
-- Tytuł: Tworzenie nowego planu treningowego
-- Opis: Jako użytkownik, chcę móc stworzyć nowy plan treningowy, abym mógł zdefiniować strukturę moich przyszłych treningów.
-- Kryteria akceptacji:
-
-  1. W "Trybie Planu" znajduje się przycisk "Stwórz nowy plan".
-  2. Po kliknięciu, użytkownik może wprowadzić nazwę planu.
-  3. Nazwa planu jest wymagana i nie może przekraczać 100 znaków.
-  4. Plan musi zawierać co najmniej jedno ćwiczenie, aby można go było zapisać.
-  5. Po zapisaniu, nowy plan pojawia się na liście planów.
-
-- ID: US-008
-- Tytuł: Dodawanie ćwiczenia do planu treningowego
-- Opis: Jako użytkownik, podczas tworzenia lub edycji planu, chcę móc dodawać ćwiczenia, aby zbudować kompletny plan treningowy.
-- Kryteria akceptacji:
-
-  1. W formularzu planu znajduje się opcja "Dodaj ćwiczenie".
-  2. Użytkownik może wyszukać ćwiczenie z predefiniowanej listy (autouzupełnianie).
-  3. Po wybraniu ćwiczenia, pojawiają się pola do zdefiniowania parametrów: technika intensywności, serie rozgrzewkowe/robocze, powtórzenia, RPE, czas odpoczynku, notatki.
-  4. Wszystkie wymagane pola muszą zostać wypełnione.
-  5. Użytkownik może dodać wiele ćwiczeń do jednego planu.
-
-- ID: US-009
-- Tytuł: Edycja ćwiczenia w planie treningowym
-- Opis: Jako użytkownik, chcę mieć możliwość edycji parametrów ćwiczenia w istniejącym planie, aby dostosować go do moich aktualnych celów.
-- Kryteria akceptacji:
-
-  1. Przy każdym ćwiczeniu na liście w planie znajduje się opcja "Edytuj".
-  2. Po jej wybraniu, użytkownik może modyfikować wszystkie zdefiniowane wcześniej parametry ćwiczenia.
-  3. Zmiany są zapisywane po zatwierdzeniu edycji planu.
-
-- ID: US-010
-- Tytuł: Usuwanie ćwiczenia z planu treningowego
-- Opis: Jako użytkownik, chcę mieć możliwość usunięcia ćwiczenia z planu, jeśli uznam, że nie jest już potrzebne.
-- Kryteria akceptacji:
-
-  1. Przy każdym ćwiczeniu na liście w planie znajduje się opcja "Usuń".
-  2. Po kliknięciu, użytkownik jest proszony o potwierdzenie operacji w oknie modalnym.
-  3. Po potwierdzeniu, ćwiczenie jest trwale usuwane z planu.
-
-- ID: US-011
-- Tytuł: Zmiana nazwy planu treningowego
-- Opis: Jako użytkownik, chcę móc zmienić nazwę istniejącego planu treningowego, aby lepiej odzwierciedlała jego zawartość.
-- Kryteria akceptacji:
-
-  1. W widoku edycji planu, pole z nazwą jest edytowalne.
-  2. Nazwa planu musi pozostać niepusta i nie przekraczać 100 znaków.
-  3. Po zapisaniu planu, nowa nazwa jest widoczna na liście planów.
-
-- ID: US-012
-- Tytuł: Usuwanie planu treningowego
-- Opis: Jako użytkownik, chcę móc usunąć cały plan treningowy, gdy nie jest mi już potrzebny.
-- Kryteria akceptacji:
-  1. Na liście planów lub w widoku edycji planu znajduje się opcja "Usuń plan".
-  2. Użytkownik musi potwierdzić chęć usunięcia planu w oknie modalnym.
-  3. Po potwierdzeniu, plan jest trwale usuwany i znika z listy.
-
-### Realizacja Treningu
-
-- ID: US-013
-- Tytuł: Rozpoczynanie sesji treningowej
-- Opis: Jako użytkownik, chcę rozpocząć sesję treningową na podstawie jednego z moich planów, aby móc rejestrować swoje wyniki.
-- Kryteria akceptacji:
-
-  1. W "Trybie Treningu" wyświetlana jest lista moich planów treningowych.
-  2. Po wybraniu planu, aplikacja przechodzi do interfejsu rejestrowania treningu.
-  3. Wyświetlana jest lista ćwiczeń z wybranego planu.
-
-- ID: US-014
-- Tytuł: Przeglądanie szczegółów ćwiczenia podczas treningu
-- Opis: Jako użytkownik, podczas wykonywania ćwiczenia, chcę widzieć jego szczegóły, takie jak opis techniki i historia wyników, aby trenować efektywnie i bezpiecznie.
-- Kryteria akceptacji:
-
-  1. Dla każdego ćwiczenia na liście, automatycznie rozwija się opis techniki od AI (z możliwością zwinięcia).
-  2. Wyświetlane są dane tylko do odczytu z planu: docelowe RPE i czas odpoczynku.
-  3. Dostępna jest zwijana sekcja pokazująca wyniki (obciążenie, powtórzenia) z 3-5 ostatnich sesji dla tego ćwiczenia.
-
-- ID: US-015
-- Tytuł: Rejestrowanie danych dla serii ćwiczenia
-- Opis: Jako użytkownik, chcę móc wprowadzić liczbę powtórzeń i użyte obciążenie dla każdej wykonanej serii (rozgrzewkowej i roboczej), aby precyzyjnie śledzić swój trening.
-- Kryteria akceptacji:
-
-  1. Interfejs zawiera osobne sekcje dla serii rozgrzewkowych i roboczych, zgodnie z planem.
-  2. Dla każdej serii dostępne są pola do wpisania faktycznej liczby powtórzeń i obciążenia (w kg).
-  3. Pole obciążenia akceptuje wartości dziesiętne z dokładnością do jednego miejsca po przecinku.
-  4. Dla każdego ćwiczenia dostępne jest jedno pole na notatki.
-
-- ID: US-016
-- Tytuł: Zapisywanie ukończonej sesji treningowej
-- Opis: Jako użytkownik, po zakończeniu treningu, chcę móc zapisać całą sesję, aby została ona dodana do mojej historii.
-- Kryteria akceptacji:
-
-  1. W interfejsie treningu znajduje się przycisk "Zapisz trening".
-  2. Użytkownik jest proszony o potwierdzenie zapisu.
-  3. Możliwe jest zapisanie treningu nawet, jeśli nie wszystkie ćwiczenia zostały wykonane.
-  4. Po zapisaniu, użytkownik jest informowany o sukcesie, a sesja pojawia się w historii treningów.
-
-- ID: US-017
-- Tytuł: Anulowanie sesji treningowej bez zapisu
-- Opis: Jako użytkownik, chcę mieć możliwość porzucenia trwającej sesji treningowej bez zapisywania danych, jeśli zdecyduję się jej nie kończyć.
-- Kryteria akceptacji:
-  1. Użytkownik może opuścić widok treningu w dowolnym momencie.
-  2. Jeśli w sesji wprowadzono jakiekolwiek dane, przy próbie opuszczenia widoku pojawia się ostrzeżenie o utracie niezapisanych zmian.
-  3. Jeśli użytkownik potwierdzi chęć opuszczenia, dane z bieżącej sesji nie są zapisywane.
-
-### Historia Treningów
-
-- ID: US-018
-- Tytuł: Przeglądanie historii treningów
-- Opis: Jako użytkownik, chcę mieć dostęp do chronologicznej listy moich wszystkich zapisanych treningów, abym mógł analizować swoją historię.
-- Kryteria akceptacji:
-
-  1. W dedykowanej sekcji "Historia" wyświetlana jest lista ukończonych treningów, posortowana od najnowszego.
-  2. Każdy wpis na liście pokazuje co najmniej datę i nazwę planu treningowego.
-  3. Jeśli historia jest pusta, wyświetlany jest odpowiedni komunikat i CTA.
-
-- ID: US-019
-- Tytuł: Wyświetlanie szczegółów historycznego treningu
-- Opis: Jako użytkownik, chcę móc zobaczyć pełne szczegóły konkretnego treningu z przeszłości, aby dokładnie przeanalizować, co wtedy zrobiłem.
-- Kryteria akceptacji:
-
-  1. Kliknięcie na wpis w historii treningów przekierowuje do widoku szczegółowego.
-  2. Widok szczegółowy pokazuje wszystkie ćwiczenia wykonane podczas tej sesji, wraz z zapisanymi danymi (serie, powtórzenia, obciążenie, notatki).
-
-- ID: US-020
-- Tytuł: Edycja zapisanego treningu w historii
-- Opis: Jako użytkownik, chcę mieć możliwość edycji danych w zapisanym treningu, na wypadek gdybym popełnił błąd podczas wprowadzania danych.
-- Kryteria akceptacji:
-
-  1. W widoku szczegółów historycznego treningu znajduje się opcja "Edytuj".
-  2. Umożliwia ona modyfikację wszystkich wprowadzonych danych (powtórzenia, obciążenie, notatki).
-  3. Po zapisaniu zmian, są one trwale aktualizowane w historii.
-
-- ID: US-021
-- Tytuł: Usuwanie treningu z historii
-- Opis: Jako użytkownik, chcę mieć możliwość usunięcia treningu z mojej historii, jeśli został on zapisany przez pomyłkę lub z innych powodów.
-- Kryteria akceptacji:
-  1. W widoku szczegółów lub na liście historii znajduje się opcja "Usuń".
-  2. Użytkownik musi potwierdzić chęć usunięcia wpisu w oknie modalnym.
-  3. Po potwierdzeniu, trening jest trwale usuwany z historii.
-
-## 6. Metryki sukcesu
-
-- Osiągnięcie 100 aktywnych użytkowników w ciągu pierwszych 3 miesięcy od uruchomienia.
-- Wysoki wskaźnik pomyślnego tworzenia i realizacji planów treningowych przez użytkowników.
-- Zapewnienie stabilności systemu, bez przypadków utraty danych podczas zapisywania treningów.
+### 3.2. Plan Mode - Creating Workout Plans
+
+- Users can create, edit, and delete workout plans.
+- Each user can have unlimited plans.
+- Each plan can contain unlimited exercises.
+- Plans function as reusable templates.
+- Each exercise in a plan must have defined:
+  - Exercise name (selected from a predefined list).
+  - Intensity technique (drop set, pause, partial length, fail, superset, N/A).
+  - Number of warm-up sets (required, numeric).
+  - Number of working sets (required, numeric, max 4).
+  - Target reps per set (required, numeric).
+  - RPE for early sets (required, scale 1-10).
+  - RPE for last set (required, scale 1-10).
+  - Rest time in seconds (required, numeric).
+  - Optional notes (max 500 characters).
+
+### 3.3. Workout Mode - Executing Workouts
+
+- User selects a workout plan from the list to start a session.
+- Exercises are displayed in plan order but can be performed in any sequence.
+- For each exercise, the interface displays:
+  - Exercise name with automatically expanded (but collapsible) AI-generated technique description.
+  - Target RPE values and rest time (read-only).
+  - History of 3-5 most recent results for that exercise (collapsible view).
+  - Input fields for actual reps and load (in kg, with precision to one decimal place).
+- Workout saving is manual; no auto-save feature.
+- Partially completed workouts can be saved.
+
+### 3.4. Workout History
+
+- Completed workouts are displayed in a chronological list (date and plan name).
+- Clicking on a history entry displays full details of that workout.
+- User can edit or delete any saved workout.
+
+### 3.5. Exercise Database and AI Descriptions
+
+- Application contains a predefined list of 100-150 popular strength exercises.
+- Search with autocomplete makes it easy to find exercises.
+- MVP does not support adding custom exercises.
+- AI-generated technique descriptions are displayed automatically when an exercise is selected.
+
+### 3.6. Data Validation
+
+- Numeric fields (reps, sets, load) must accept only appropriate values.
+- Plan name and adding at least one exercise are required to save a plan.
+- Character limits apply: 100 for plan name, 500 for notes.
+
+## 4. Product Boundaries
+
+The following features are not in scope for the MVP:
+
+- Native mobile applications (iOS/Android).
+- Plan copy/duplicate functionality.
+- Progress visualizations and analytics.
+- Training volume calculations.
+- Offline functionality (PWA).
+- User-created custom exercises.
+- User feedback collection system.
+- Automatic workout saving.
+- Unit conversion (e.g., to pounds).
+- Weekly/monthly workout scheduling.
+- Social features.
+- Payment/subscription system.
+
+## 5. User Stories
+
+### Authentication
+
+- **ID:** US-001
+- **Title:** User registration with email and password
+- **Description:** As a new user, I want to register an account using my email address and password so that I can access the application and save my data.
+- **Acceptance Criteria:**
+
+  1. Registration form contains fields for email address and password.
+  2. Email format validation exists.
+  3. Password must meet minimum security requirements (e.g., length).
+  4. System checks if email is not already registered.
+  5. After successful registration, user is automatically logged in and redirected to the main application dashboard.
+
+- **ID:** US-002
+- **Title:** User login with email and password
+- **Description:** As a registered user, I want to log in to my account using email and password so that I can continue tracking my workouts.
+- **Acceptance Criteria:**
+
+  1. Login form contains fields for email address and password.
+  2. When incorrect credentials are provided, an appropriate message is displayed.
+  3. After successful login, user is redirected to the main application dashboard.
+
+- **ID:** US-003
+- **Title:** Login with Google account
+- **Description:** As a user, I want to be able to log in using my Google account to make the login process faster and more convenient.
+- **Acceptance Criteria:**
+
+  1. Login page contains a "Sign in with Google" button.
+  2. After clicking, user is redirected to standard Google authentication process.
+  3. After successful authentication, user is logged into MyWorkout application.
+  4. If this is the first login with that Google account, a new user account is created in the system.
+
+- **ID:** US-004
+- **Title:** Login with Apple account
+- **Description:** As a user, I want to be able to log in using my Apple account to make the login process faster and more convenient.
+- **Acceptance Criteria:**
+
+  1. Login page contains a "Sign in with Apple" button.
+  2. After clicking, user is redirected to standard Apple authentication process.
+  3. After successful authentication, user is logged into MyWorkout application.
+  4. If this is the first login with that Apple account, a new user account is created in the system.
+
+- **ID:** US-005
+- **Title:** Logout from application
+- **Description:** As a logged-in user, I want to be able to log out of my account to secure my data on shared devices.
+- **Acceptance Criteria:**
+  1. A "Logout" button is available in the user interface.
+  2. After clicking the button, user session is terminated and user is redirected to the login page.
+
+### Workout Plan Management
+
+- **ID:** US-006
+- **Title:** Viewing list of workout plans
+- **Description:** As a user, I want to see a list of all my workout plans so that I can easily manage them or select one to start a workout.
+- **Acceptance Criteria:**
+
+  1. After navigating to "Plan Mode", a list of all plans created by the user is displayed.
+  2. If user has no plans, a "No plans" message is displayed along with a "Create new plan" call-to-action button.
+
+- **ID:** US-007
+- **Title:** Creating a new workout plan
+- **Description:** As a user, I want to be able to create a new workout plan so that I can define the structure of my future workouts.
+- **Acceptance Criteria:**
+
+  1. In "Plan Mode" there is a "Create new plan" button.
+  2. After clicking, user can enter a plan name.
+  3. Plan name is required and cannot exceed 100 characters.
+  4. Plan must contain at least one exercise to be saved.
+  5. After saving, the new plan appears in the plan list.
+
+- **ID:** US-008
+- **Title:** Adding exercise to workout plan
+- **Description:** As a user, while creating or editing a plan, I want to be able to add exercises to build a complete workout plan.
+- **Acceptance Criteria:**
+
+  1. In the plan form there is an "Add exercise" option.
+  2. User can search for an exercise from a predefined list (autocomplete).
+  3. After selecting an exercise, fields appear to define parameters: intensity technique, warm-up/working sets, reps, RPE, rest time, notes.
+  4. All required fields must be filled.
+  5. User can add multiple exercises to one plan.
+
+- **ID:** US-009
+- **Title:** Editing exercise in workout plan
+- **Description:** As a user, I want to be able to edit exercise parameters in an existing plan to adapt it to my current goals.
+- **Acceptance Criteria:**
+
+  1. Each exercise on the plan list has an "Edit" option.
+  2. After selecting it, user can modify all previously defined exercise parameters.
+  3. Changes are saved after confirming plan edit.
+
+- **ID:** US-010
+- **Title:** Deleting exercise from workout plan
+- **Description:** As a user, I want to be able to delete an exercise from a plan if I determine it is no longer needed.
+- **Acceptance Criteria:**
+
+  1. Each exercise on the plan list has a "Delete" option.
+  2. After clicking, user is asked to confirm the operation in a modal window.
+  3. After confirmation, the exercise is permanently removed from the plan.
+
+- **ID:** US-011
+- **Title:** Renaming workout plan
+- **Description:** As a user, I want to be able to change the name of an existing workout plan so that it better reflects its content.
+- **Acceptance Criteria:**
+
+  1. In plan edit view, the name field is editable.
+  2. Plan name must remain non-empty and not exceed 100 characters.
+  3. After saving the plan, the new name is visible in the plan list.
+
+- **ID:** US-012
+- **Title:** Deleting workout plan
+- **Description:** As a user, I want to be able to delete an entire workout plan when I no longer need it.
+- **Acceptance Criteria:**
+  1. In the plan list or plan edit view there is a "Delete plan" option.
+  2. User must confirm the desire to delete the plan in a modal window.
+  3. After confirmation, the plan is permanently deleted and disappears from the list.
+
+### Workout Execution
+
+- **ID:** US-013
+- **Title:** Starting workout session
+- **Description:** As a user, I want to start a workout session based on one of my plans so that I can record my results.
+- **Acceptance Criteria:**
+
+  1. In "Workout Mode", a list of my workout plans is displayed.
+  2. After selecting a plan, the application transitions to the workout logging interface.
+  3. A list of exercises from the selected plan is displayed.
+
+- **ID:** US-014
+- **Title:** Viewing exercise details during workout
+- **Description:** As a user, while performing an exercise, I want to see its details such as technique description and results history to train effectively and safely.
+- **Acceptance Criteria:**
+
+  1. For each exercise on the list, AI technique description automatically expands (with ability to collapse).
+  2. Read-only data from the plan is displayed: target RPE and rest time.
+  3. A collapsible section showing results (load, reps) from the 3-5 most recent sessions for that exercise is available.
+
+- **ID:** US-015
+- **Title:** Logging data for exercise sets
+- **Description:** As a user, I want to be able to enter the number of reps and load used for each completed set (warm-up and working) to precisely track my workout.
+- **Acceptance Criteria:**
+
+  1. Interface contains separate sections for warm-up and working sets, according to the plan.
+  2. For each set, fields are available to enter actual reps and load (in kg).
+  3. Load field accepts decimal values with precision to one decimal place.
+  4. One notes field is available for each exercise.
+
+- **ID:** US-016
+- **Title:** Saving completed workout session
+- **Description:** As a user, after finishing a workout, I want to be able to save the entire session so that it is added to my history.
+- **Acceptance Criteria:**
+
+  1. In the workout interface there is a "Save workout" button.
+  2. User is asked to confirm the save.
+  3. It is possible to save a workout even if not all exercises were completed.
+  4. After saving, user is informed of success and the session appears in workout history.
+
+- **ID:** US-017
+- **Title:** Canceling workout session without saving
+- **Description:** As a user, I want to be able to abandon an ongoing workout session without saving data if I decide not to finish it.
+- **Acceptance Criteria:**
+  1. User can leave the workout view at any time.
+  2. If any data was entered in the session, a warning about losing unsaved changes appears when attempting to leave the view.
+  3. If user confirms the desire to leave, data from the current session is not saved.
+
+### Workout History
+
+- **ID:** US-018
+- **Title:** Viewing workout history
+- **Description:** As a user, I want to have access to a chronological list of all my saved workouts so that I can analyze my history.
+- **Acceptance Criteria:**
+
+  1. In the dedicated "History" section, a list of completed workouts is displayed, sorted from newest.
+  2. Each entry on the list shows at least the date and workout plan name.
+  3. If history is empty, an appropriate message and CTA are displayed.
+
+- **ID:** US-019
+- **Title:** Displaying historical workout details
+- **Description:** As a user, I want to be able to see full details of a specific past workout to thoroughly analyze what I did then.
+- **Acceptance Criteria:**
+
+  1. Clicking on an entry in workout history redirects to detailed view.
+  2. Detailed view shows all exercises performed during that session, along with saved data (sets, reps, load, notes).
+
+- **ID:** US-020
+- **Title:** Editing saved workout in history
+- **Description:** As a user, I want to be able to edit data in a saved workout in case I made an error during data entry.
+- **Acceptance Criteria:**
+
+  1. In the historical workout detail view there is an "Edit" option.
+  2. It allows modification of all entered data (reps, load, notes).
+  3. After saving changes, they are permanently updated in history.
+
+- **ID:** US-021
+- **Title:** Deleting workout from history
+- **Description:** As a user, I want to be able to delete a workout from my history if it was saved by mistake or for other reasons.
+- **Acceptance Criteria:**
+  1. In the detail view or on the history list there is a "Delete" option.
+  2. User must confirm the desire to delete the entry in a modal window.
+  3. After confirmation, the workout is permanently removed from history.
+
+## 6. Success Metrics
+
+- Achieve 100 active users within the first 3 months of launch.
+- High rate of successful workout plan creation and execution by users.
+- Ensure system stability with no instances of data loss during workout saves.
