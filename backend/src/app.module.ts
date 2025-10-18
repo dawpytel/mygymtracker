@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
+import { ExercisesModule } from './exercises/exercises.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
     // Feature modules
     AuthModule,
     WorkoutPlansModule,
+    ExercisesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

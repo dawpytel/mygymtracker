@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // ============================================================================
@@ -350,7 +350,12 @@ export class ExerciseQueryDto {
     minimum: 1,
     maximum: 100,
   })
-  limit?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  limit?: number = 10;
 
   @ApiProperty({
     description: 'Number of items to skip',
@@ -358,13 +363,19 @@ export class ExerciseQueryDto {
     required: false,
     minimum: 0,
   })
-  offset?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  offset?: number = 0;
 
   @ApiProperty({
     description: 'Search query for exercise name',
     example: 'bench',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   search?: string;
 }
 
