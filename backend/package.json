@@ -23,7 +23,8 @@
     "migration:create": "npm run typeorm -- migration:create",
     "migration:run": "npm run typeorm -- migration:run -d src/db/data-source.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/db/data-source.ts",
-    "migration:show": "npm run typeorm -- migration:show -d src/db/data-source.ts"
+    "migration:show": "npm run typeorm -- migration:show -d src/db/data-source.ts",
+    "db:seed-dev": "psql -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-mygymtracker} -f src/db/seed-dev-user.sql"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

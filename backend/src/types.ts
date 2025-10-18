@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsInt, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 // ============================================================================
 // ENUMS
@@ -430,6 +432,37 @@ export class WorkoutPlanListDto {
     example: 5,
   })
   total: number;
+}
+
+/**
+ * Query parameters for workout plan listing
+ */
+export class WorkoutPlanQueryDto {
+  @ApiProperty({
+    description: 'Maximum number of items to return',
+    example: 20,
+    required: false,
+    minimum: 1,
+    maximum: 100,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  limit?: number = 20;
+
+  @ApiProperty({
+    description: 'Number of items to skip',
+    example: 0,
+    required: false,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  offset?: number = 0;
 }
 
 /**

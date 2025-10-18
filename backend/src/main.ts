@@ -22,9 +22,12 @@ async function bootstrap() {
   // Validation pipe for DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
+      transform: true, // Enable auto-transformation
+      whitelist: true, // Strip unknown properties
+      forbidNonWhitelisted: true, // Throw error on unknown properties
+      transformOptions: {
+        enableImplicitConversion: false, // Require explicit @Type() decorators
+      },
     }),
   );
 
