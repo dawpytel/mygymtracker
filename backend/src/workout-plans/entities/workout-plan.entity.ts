@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { PlanExercise } from './plan-exercise.entity';
 
 /**
  * WorkoutPlan entity - represents a user's workout plan template
@@ -26,4 +28,7 @@ export class WorkoutPlan {
 
   @UpdateDateColumn({ type: 'timestamptz', nullable: true })
   updated_at: Date | null;
+
+  @OneToMany(() => PlanExercise, (planExercise) => planExercise.workout_plan)
+  exercises: PlanExercise[];
 }

@@ -1,4 +1,14 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Request,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -8,7 +18,12 @@ import {
 } from '@nestjs/swagger';
 import { WorkoutPlansService } from './workout-plans.service';
 import { DevAuthGuard } from '../auth/guards/dev-auth.guard';
-import { WorkoutPlanListDto, WorkoutPlanQueryDto } from '../types';
+import {
+  WorkoutPlanListDto,
+  WorkoutPlanQueryDto,
+  CreateWorkoutPlanDto,
+  WorkoutPlanDto,
+} from '../types';
 
 /**
  * WorkoutPlansController - handles HTTP requests for workout plans
@@ -73,5 +88,47 @@ export class WorkoutPlansController {
     @Request() req,
   ): Promise<WorkoutPlanListDto> {
     return this.workoutPlansService.findUserPlans(req.user.id, query);
+  }
+
+  /**
+   * POST /plans - Create a new workout plan with exercises
+   * Creates a new workout plan for the authenticated user with nested exercises
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create a new workout plan',
+    description:
+      'Create a new workout plan with exercises for the authenticated user',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Workout plan successfully created',
+    type: WorkoutPlanDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request body or validation failed',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing JWT token',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - plan name already exists for user',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async create(
+    @Body() createWorkoutPlanDto: CreateWorkoutPlanDto,
+    @Request() req,
+  ): Promise<WorkoutPlanDto> {
+    return this.workoutPlansService.createPlan(
+      req.user.id,
+      createWorkoutPlanDto,
+    );
   }
 }
