@@ -190,6 +190,8 @@ export class RegisterDto {
     example: 'user@example.com',
     format: 'email',
   })
+  @IsNotEmpty()
+  @IsString()
   email: string;
 
   @ApiProperty({
@@ -198,6 +200,8 @@ export class RegisterDto {
     minLength: 8,
     format: 'password',
   })
+  @IsNotEmpty()
+  @IsString()
   password: string;
 }
 
@@ -236,6 +240,8 @@ export class LoginDto {
     description: 'User email address',
     example: 'user@example.com',
   })
+  @IsNotEmpty()
+  @IsString()
   email: string;
 
   @ApiProperty({
@@ -243,6 +249,8 @@ export class LoginDto {
     example: 'SecurePass123!',
     format: 'password',
   })
+  @IsNotEmpty()
+  @IsString()
   password: string;
 }
 
@@ -271,6 +279,8 @@ export class OAuthLoginDto {
     description: 'OAuth token from provider (google|apple)',
     example: 'ya29.a0AfH6SMBx...',
   })
+  @IsNotEmpty()
+  @IsString()
   token: string;
 }
 

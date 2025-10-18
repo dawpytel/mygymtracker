@@ -33,8 +33,8 @@ async function bootstrap() {
 
   // Swagger API Documentation
   const config = new DocumentBuilder()
-    .setTitle('My App API')
-    .setDescription('API documentation for My App')
+    .setTitle('MyGymTracker API')
+    .setDescription('API documentation for MyGymTracker')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
