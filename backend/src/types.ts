@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 // ============================================================================
@@ -1075,7 +1084,12 @@ export class SessionQueryDto {
     minimum: 1,
     maximum: 100,
   })
-  limit?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  limit?: number = 20;
 
   @ApiProperty({
     description: 'Number of items to skip',
@@ -1083,7 +1097,11 @@ export class SessionQueryDto {
     required: false,
     minimum: 0,
   })
-  offset?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  offset?: number = 0;
 
   @ApiProperty({
     description: 'Filter by session status',
@@ -1091,6 +1109,8 @@ export class SessionQueryDto {
     example: SessionStatus.COMPLETED,
     required: false,
   })
+  @IsOptional()
+  @IsString()
   status?: SessionStatus | 'all';
 }
 
@@ -1103,6 +1123,8 @@ export class CreateWorkoutSessionDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
   })
+  @IsNotEmpty()
+  @IsUUID()
   plan_id: string;
 }
 
@@ -1185,5 +1207,7 @@ export class UpdateWorkoutSessionDto {
     enum: [SessionStatus.COMPLETED, SessionStatus.CANCELLED],
     example: SessionStatus.COMPLETED,
   })
+  @IsNotEmpty()
+  @IsEnum(SessionStatus)
   status: SessionStatus.COMPLETED | SessionStatus.CANCELLED;
 }

@@ -12,17 +12,24 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { DevAuthGuard } from '../auth/guards/dev-auth.guard';
 import { ExercisesService } from './exercises.service';
 import { ExerciseQueryDto, ExerciseListDto, ExerciseDto } from '../types';
 
 /**
  * Controller for exercise endpoints
  * Provides read-only access to exercise catalog
+ *
+ * DEVELOPMENT MODE:
+ * - Using DevAuthGuard which automatically injects a default user
+ * - No JWT token required for testing
+ * - Default user ID: 00000000-0000-0000-0000-000000000001
+ *
+ * TODO: Replace DevAuthGuard with JwtAuthGuard when authentication is implemented
  */
 @ApiTags('exercises')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DevAuthGuard)
 @Controller('exercises')
 export class ExercisesController {
   constructor(private readonly exercisesService: ExercisesService) {}
