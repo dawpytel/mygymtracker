@@ -7,6 +7,8 @@ export { ActionButton } from './ActionButton';
 export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
 export { ErrorBanner } from './ErrorBanner';
+export { ExerciseAutocomplete } from './ExerciseAutocomplete';
+export { FormValidationErrors } from './FormValidationErrors';
 export { HeaderBar } from './HeaderBar';
 export { LoadingIndicator } from './LoadingIndicator';
 export { PaginationControls } from './PaginationControls';

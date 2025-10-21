@@ -3,17 +3,17 @@
  * Main page for displaying and managing workout plans
  */
 
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { usePlans } from '../hooks/usePlans';
-import { HeaderBar } from '../components/HeaderBar';
-import { LoadingIndicator } from '../components/LoadingIndicator';
-import { EmptyState } from '../components/EmptyState';
-import { PlanCard } from '../components/PlanCard';
-import { PaginationControls } from '../components/PaginationControls';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-import { ErrorBanner } from '../components/ErrorBanner';
-import type { PlanListItemVM } from '../types/viewModels';
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { usePlans } from "../hooks/usePlans";
+import { HeaderBar } from "../components/HeaderBar";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import { EmptyState } from "../components/EmptyState";
+import { PlanCard } from "../components/PlanCard";
+import { PaginationControls } from "../components/PaginationControls";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ErrorBanner } from "../components/ErrorBanner";
+import type { PlanListItemVM } from "../types/viewModels";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -28,7 +28,7 @@ export function PlanListPage() {
 
   // Navigation handlers
   const handleCreate = useCallback(() => {
-    navigate('/plans/create');
+    navigate("/plans/new");
   }, [navigate]);
 
   const handleEdit = useCallback(
@@ -59,7 +59,7 @@ export function PlanListPage() {
       setSelectedPlan(null);
     } catch (error) {
       // Error is already set in the hook
-      console.error('Failed to delete plan:', error);
+      console.error("Failed to delete plan:", error);
     } finally {
       setIsDeleting(false);
     }
@@ -143,9 +143,9 @@ export function PlanListPage() {
         message={
           selectedPlan
             ? `Are you sure you want to delete "${selectedPlan.planName}"? This action cannot be undone.`
-            : ''
+            : ""
         }
-        confirmLabel={isDeleting ? 'Deleting...' : 'Delete'}
+        confirmLabel={isDeleting ? "Deleting..." : "Delete"}
         cancelLabel="Cancel"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
@@ -153,4 +153,3 @@ export function PlanListPage() {
     </div>
   );
 }
-

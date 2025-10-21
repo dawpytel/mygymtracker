@@ -8,6 +8,9 @@ import {
   IsUUID,
   IsEnum,
   IsNotEmpty,
+  IsArray,
+  ValidateNested,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -505,6 +508,11 @@ export class PlanExerciseInputDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
   })
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    message: 'exercise_id must be a valid UUID',
+  })
   exercise_id: string;
 
   @ApiProperty({
@@ -512,6 +520,9 @@ export class PlanExerciseInputDto {
     example: 1,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   display_order: number;
 
   @ApiProperty({
@@ -519,6 +530,8 @@ export class PlanExerciseInputDto {
     enum: IntensityTechnique,
     example: IntensityTechnique.DROP_SET,
   })
+  @IsNotEmpty()
+  @IsEnum(IntensityTechnique)
   intensity_technique: IntensityTechnique;
 
   @ApiProperty({
@@ -527,6 +540,9 @@ export class PlanExerciseInputDto {
     minimum: 0,
     maximum: 32767,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   warmup_sets: number;
 
   @ApiProperty({
@@ -535,6 +551,10 @@ export class PlanExerciseInputDto {
     minimum: 0,
     maximum: 4,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
+  @Max(4)
   working_sets: number;
 
   @ApiProperty({
@@ -542,6 +562,9 @@ export class PlanExerciseInputDto {
     example: 10,
     minimum: 1,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   target_reps: number;
 
   @ApiProperty({
@@ -550,6 +573,10 @@ export class PlanExerciseInputDto {
     minimum: 1,
     maximum: 10,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rpe_early: number;
 
   @ApiProperty({
@@ -558,6 +585,10 @@ export class PlanExerciseInputDto {
     minimum: 1,
     maximum: 10,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rpe_last: number;
 
   @ApiProperty({
@@ -565,6 +596,9 @@ export class PlanExerciseInputDto {
     example: 120,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   rest_time: number;
 
   @ApiProperty({
@@ -572,6 +606,7 @@ export class PlanExerciseInputDto {
     example: 'Focus on form, keep elbows tucked',
     maxLength: 500,
   })
+  @IsString()
   notes: string;
 }
 
@@ -677,12 +712,17 @@ export class CreateWorkoutPlanDto {
     example: 'Push Day',
     maxLength: 100,
   })
+  @IsNotEmpty()
+  @IsString()
   plan_name: string;
 
   @ApiProperty({
     description: 'List of exercises in the plan',
     type: [PlanExerciseInputDto],
   })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlanExerciseInputDto)
   exercises: PlanExerciseInputDto[];
 }
 
@@ -719,6 +759,8 @@ export class UpdateWorkoutPlanDto {
     example: 'Push Day - Updated',
     maxLength: 100,
   })
+  @IsNotEmpty()
+  @IsString()
   plan_name: string;
 }
 
@@ -736,6 +778,11 @@ export class UpdatePlanExerciseDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
   })
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    message: 'exercise_id must be a valid UUID',
+  })
   exercise_id: string;
 
   @ApiProperty({
@@ -743,6 +790,9 @@ export class UpdatePlanExerciseDto {
     example: 1,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   display_order: number;
 
   @ApiProperty({
@@ -750,6 +800,8 @@ export class UpdatePlanExerciseDto {
     enum: IntensityTechnique,
     example: IntensityTechnique.DROP_SET,
   })
+  @IsNotEmpty()
+  @IsEnum(IntensityTechnique)
   intensity_technique: IntensityTechnique;
 
   @ApiProperty({
@@ -757,6 +809,9 @@ export class UpdatePlanExerciseDto {
     example: 2,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   warmup_sets: number;
 
   @ApiProperty({
@@ -765,6 +820,10 @@ export class UpdatePlanExerciseDto {
     minimum: 0,
     maximum: 4,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
+  @Max(4)
   working_sets: number;
 
   @ApiProperty({
@@ -772,6 +831,9 @@ export class UpdatePlanExerciseDto {
     example: 10,
     minimum: 1,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   target_reps: number;
 
   @ApiProperty({
@@ -780,6 +842,10 @@ export class UpdatePlanExerciseDto {
     minimum: 1,
     maximum: 10,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rpe_early: number;
 
   @ApiProperty({
@@ -788,6 +854,10 @@ export class UpdatePlanExerciseDto {
     minimum: 1,
     maximum: 10,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rpe_last: number;
 
   @ApiProperty({
@@ -795,6 +865,9 @@ export class UpdatePlanExerciseDto {
     example: 120,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   rest_time: number;
 
   @ApiProperty({
@@ -802,6 +875,7 @@ export class UpdatePlanExerciseDto {
     example: 'Focus on form, keep elbows tucked',
     maxLength: 500,
   })
+  @IsString()
   notes: string;
 }
 
@@ -819,6 +893,8 @@ export class CreateExerciseSetDto {
     enum: SetType,
     example: SetType.WORKING,
   })
+  @IsNotEmpty()
+  @IsEnum(SetType)
   set_type: SetType;
 
   @ApiProperty({
@@ -826,6 +902,9 @@ export class CreateExerciseSetDto {
     example: 1,
     minimum: 1,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   set_index: number;
 
   @ApiProperty({
@@ -833,6 +912,9 @@ export class CreateExerciseSetDto {
     example: 10,
     minimum: 1,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   reps: number;
 
   @ApiProperty({
@@ -841,6 +923,8 @@ export class CreateExerciseSetDto {
     minimum: 0,
     type: Number,
   })
+  @IsNotEmpty()
+  @Min(0)
   load: number;
 }
 
@@ -905,6 +989,8 @@ export class UpdateExerciseSetDto {
     example: SetType.WORKING,
     required: false,
   })
+  @IsOptional()
+  @IsEnum(SetType)
   set_type?: SetType;
 
   @ApiProperty({
@@ -913,6 +999,9 @@ export class UpdateExerciseSetDto {
     minimum: 1,
     required: false,
   })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   set_index?: number;
 
   @ApiProperty({
@@ -921,6 +1010,9 @@ export class UpdateExerciseSetDto {
     minimum: 1,
     required: false,
   })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   reps?: number;
 
   @ApiProperty({
@@ -930,6 +1022,8 @@ export class UpdateExerciseSetDto {
     type: Number,
     required: false,
   })
+  @IsOptional()
+  @Min(0)
   load?: number;
 }
 
@@ -947,6 +1041,11 @@ export class CreateSessionExerciseDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
   })
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    message: 'exercise_id must be a valid UUID',
+  })
   exercise_id: string;
 
   @ApiProperty({
@@ -954,6 +1053,9 @@ export class CreateSessionExerciseDto {
     example: 1,
     minimum: 0,
   })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   display_order: number;
 
   @ApiProperty({
@@ -961,6 +1063,7 @@ export class CreateSessionExerciseDto {
     example: 'Felt strong today, increased weight',
     maxLength: 500,
   })
+  @IsString()
   notes: string;
 }
 
@@ -1014,6 +1117,8 @@ export class UpdateSessionExerciseDto {
     maxLength: 500,
     required: false,
   })
+  @IsOptional()
+  @IsString()
   notes?: string;
 
   @ApiProperty({
@@ -1022,6 +1127,9 @@ export class UpdateSessionExerciseDto {
     minimum: 0,
     required: false,
   })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   display_order?: number;
 }
 
@@ -1134,7 +1242,10 @@ export class CreateWorkoutSessionDto {
     format: 'uuid',
   })
   @IsNotEmpty()
-  @IsUUID()
+  @IsString()
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    message: 'plan_id must be a valid UUID',
+  })
   plan_id: string;
 }
 
