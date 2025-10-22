@@ -99,6 +99,7 @@ export interface PlanExerciseInputDto {
 export interface PlanExerciseDto extends PlanExerciseInputDto {
   id: string;
   plan_id: string;
+  exercise_name: string;
 }
 
 /**
@@ -116,4 +117,12 @@ export interface WorkoutPlanDto {
   id: string;
   plan_name: string;
   exercises: PlanExerciseDto[];
+}
+
+/**
+ * Input DTO for updating a workout plan
+ */
+export interface UpdateWorkoutPlanDto {
+  plan_name: string;
+  exercises?: PlanExerciseInputDto[];
 }

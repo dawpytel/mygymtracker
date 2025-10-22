@@ -3,10 +3,10 @@
  * Handles fetching, pagination, and deletion of workout plans
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { apiGet, apiDelete } from '../lib/api';
-import type { WorkoutPlanListDto, WorkoutPlanQueryDto } from '../types/api';
-import type { PaginatedPlansVM, PlanListItemVM } from '../types/viewModels';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { apiGet, apiDelete } from "../lib/api";
+import type { WorkoutPlanListDto, WorkoutPlanQueryDto } from "../types/api";
+import type { PaginatedPlansVM, PlanListItemVM } from "../types/viewModels";
 
 interface UsePlansState {
   items: PlanListItemVM[];
@@ -49,6 +49,9 @@ export function usePlans(limit: number = 20): UsePlansReturn {
     error: null,
   });
 
+  // Use ref to track current offset to avoid stale closure issues
+  const offsetRef = useRef(0);
+
   /**
    * Fetch plans from API with given offset
    */
@@ -57,6 +60,9 @@ export function usePlans(limit: number = 20): UsePlansReturn {
       if (newOffset < 0) {
         return;
       }
+
+      // Update ref to track current offset
+      offsetRef.current = newOffset;
 
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
@@ -90,7 +96,7 @@ export function usePlans(limit: number = 20): UsePlansReturn {
         });
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to fetch plans';
+          error instanceof Error ? error.message : "Failed to fetch plans";
         setState((prev) => ({
           ...prev,
           loading: false,
@@ -108,11 +114,11 @@ export function usePlans(limit: number = 20): UsePlansReturn {
     async (id: string) => {
       try {
         await apiDelete(`/plans/${id}`);
-        // Refetch current page after deletion
-        await fetchPlans(state.offset);
+        // Refetch current page after deletion using the ref
+        await fetchPlans(offsetRef.current);
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to delete plan';
+          error instanceof Error ? error.message : "Failed to delete plan";
         setState((prev) => ({
           ...prev,
           error: errorMessage,
@@ -120,15 +126,15 @@ export function usePlans(limit: number = 20): UsePlansReturn {
         throw error; // Re-throw to allow caller to handle
       }
     },
-    [fetchPlans, state.offset]
+    [fetchPlans]
   );
 
   /**
    * Refetch current page
    */
   const refetch = useCallback(async () => {
-    await fetchPlans(state.offset);
-  }, [fetchPlans, state.offset]);
+    await fetchPlans(offsetRef.current);
+  }, [fetchPlans]);
 
   // Fetch initial data on mount
   useEffect(() => {
@@ -142,4 +148,3 @@ export function usePlans(limit: number = 20): UsePlansReturn {
     refetch,
   };
 }
-

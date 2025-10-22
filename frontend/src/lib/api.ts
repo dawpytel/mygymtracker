@@ -35,13 +35,19 @@ async function apiFetch<T>(
   const url = `${API_BASE_URL}${endpoint}`;
 
   try {
+    console.log(`[API] ${options?.method || "GET"} ${url}`);
     const response = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
       },
+      credentials: "include", // Include credentials for CORS
     });
+
+    console.log(
+      `[API] Response status: ${response.status} ${response.statusText}`
+    );
 
     if (!response.ok) {
       // Try to parse error details from response body
@@ -67,10 +73,11 @@ async function apiFetch<T>(
             }
           }
         }
-      } catch {
-        // If parsing fails, use default message
+      } catch (parseError) {
+        console.error("[API] Failed to parse error response:", parseError);
       }
 
+      console.error(`[API] Error: ${errorMessage}`, errorDetails);
       throw new ApiError(
         response.status,
         response.statusText,
@@ -79,16 +86,26 @@ async function apiFetch<T>(
       );
     }
 
-    // Handle 204 No Content
-    if (response.status === 204) {
+    // Handle 204 No Content or empty response
+    if (
+      response.status === 204 ||
+      response.headers.get("content-length") === "0"
+    ) {
       return undefined as T;
     }
 
-    return await response.json();
+    // Check if response has content before parsing
+    const contentType = response.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+      return await response.json();
+    }
+
+    return undefined as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }
+    console.error("[API] Network error:", error);
     throw new Error(
       `Network error: ${
         error instanceof Error ? error.message : "Unknown error"

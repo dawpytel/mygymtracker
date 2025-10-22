@@ -612,7 +612,7 @@ export class PlanExerciseInputDto {
 
 /**
  * Output DTO for plan exercise
- * Directly maps to PlanExerciseEntity
+ * Directly maps to PlanExerciseEntity with exercise name included
  */
 export class PlanExerciseDto {
   @ApiProperty({
@@ -635,6 +635,12 @@ export class PlanExerciseDto {
     format: 'uuid',
   })
   exercise_id: string;
+
+  @ApiProperty({
+    description: 'Exercise name',
+    example: 'Bench Press',
+  })
+  exercise_name: string;
 
   @ApiProperty({
     description: 'Display order of exercise in the plan',
@@ -762,6 +768,17 @@ export class UpdateWorkoutPlanDto {
   @IsNotEmpty()
   @IsString()
   plan_name: string;
+
+  @ApiProperty({
+    description: 'Updated list of exercises in the plan',
+    type: [PlanExerciseInputDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlanExerciseInputDto)
+  exercises?: PlanExerciseInputDto[];
 }
 
 // ============================================================================

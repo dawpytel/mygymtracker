@@ -53,7 +53,7 @@ export class PlanExercise {
   @Column({ type: 'varchar', length: 500, default: '' })
   notes: string;
 
-  @ManyToOne(() => WorkoutPlan)
+  @ManyToOne(() => WorkoutPlan, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_id' })
   workout_plan: WorkoutPlan;
 }
