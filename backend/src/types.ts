@@ -10,6 +10,7 @@ import {
   IsNotEmpty,
   IsArray,
   ValidateNested,
+  MaxLength,
   Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -509,10 +510,7 @@ export class PlanExerciseInputDto {
     format: 'uuid',
   })
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
-    message: 'exercise_id must be a valid UUID',
-  })
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
   exercise_id: string;
 
   @ApiProperty({
@@ -523,6 +521,7 @@ export class PlanExerciseInputDto {
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   display_order: number;
 
   @ApiProperty({
@@ -543,6 +542,7 @@ export class PlanExerciseInputDto {
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   warmup_sets: number;
 
   @ApiProperty({
@@ -555,6 +555,7 @@ export class PlanExerciseInputDto {
   @IsInt()
   @Min(0)
   @Max(4)
+  @Type(() => Number)
   working_sets: number;
 
   @ApiProperty({
@@ -565,6 +566,7 @@ export class PlanExerciseInputDto {
   @IsNotEmpty()
   @IsInt()
   @Min(1)
+  @Type(() => Number)
   target_reps: number;
 
   @ApiProperty({
@@ -577,6 +579,7 @@ export class PlanExerciseInputDto {
   @IsInt()
   @Min(1)
   @Max(10)
+  @Type(() => Number)
   rpe_early: number;
 
   @ApiProperty({
@@ -589,6 +592,7 @@ export class PlanExerciseInputDto {
   @IsInt()
   @Min(1)
   @Max(10)
+  @Type(() => Number)
   rpe_last: number;
 
   @ApiProperty({
@@ -599,6 +603,7 @@ export class PlanExerciseInputDto {
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   rest_time: number;
 
   @ApiProperty({
@@ -607,6 +612,7 @@ export class PlanExerciseInputDto {
     maxLength: 500,
   })
   @IsString()
+  @MaxLength(500)
   notes: string;
 }
 
@@ -720,6 +726,7 @@ export class CreateWorkoutPlanDto {
   })
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   plan_name: string;
 
   @ApiProperty({
@@ -767,6 +774,7 @@ export class UpdateWorkoutPlanDto {
   })
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   plan_name: string;
 
   @ApiProperty({
@@ -796,10 +804,7 @@ export class UpdatePlanExerciseDto {
     format: 'uuid',
   })
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
-    message: 'exercise_id must be a valid UUID',
-  })
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
   exercise_id: string;
 
   @ApiProperty({
@@ -1059,10 +1064,7 @@ export class CreateSessionExerciseDto {
     format: 'uuid',
   })
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
-    message: 'exercise_id must be a valid UUID',
-  })
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
   exercise_id: string;
 
   @ApiProperty({
@@ -1259,10 +1261,7 @@ export class CreateWorkoutSessionDto {
     format: 'uuid',
   })
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
-    message: 'plan_id must be a valid UUID',
-  })
+  @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
   plan_id: string;
 }
 
