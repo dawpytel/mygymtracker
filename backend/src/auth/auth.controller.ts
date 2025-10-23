@@ -62,7 +62,9 @@ export class AuthController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error',
   })
-  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
+  async register(
+    @Body() registerDto: RegisterDto,
+  ): Promise<RegisterResponseDto> {
     // Validate email format
     if (!this.isValidEmail(registerDto.email)) {
       throw new BadRequestException('Invalid email format');
@@ -151,12 +153,12 @@ export class AuthController {
   ): Promise<LoginResponseDto> {
     // Validate provider
     if (provider !== 'google' && provider !== 'apple') {
-      throw new BadRequestException('Invalid OAuth provider. Must be google or apple');
+      throw new BadRequestException(
+        'Invalid OAuth provider. Must be google or apple',
+      );
     }
 
-    // TODO: Implement OAuth login with provider SDKs
-    // For now, throw an error indicating it's not implemented
-    throw new BadRequestException('OAuth login not yet implemented');
+    return this.authService.oauthLogin(provider, oauthLoginDto.token);
   }
 
   /**
@@ -199,4 +201,3 @@ export class AuthController {
     return emailRegex.test(email);
   }
 }
-

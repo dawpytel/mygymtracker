@@ -26,6 +26,22 @@ export class ApiError extends Error {
 }
 
 /**
+ * Get JWT token from localStorage
+ */
+function getAuthToken(): string | null {
+  try {
+    const stored = localStorage.getItem("auth_tokens");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.accessToken || null;
+    }
+  } catch (error) {
+    console.error("[API] Failed to get auth token:", error);
+  }
+  return null;
+}
+
+/**
  * Generic fetch wrapper with error handling
  */
 async function apiFetch<T>(
@@ -34,14 +50,30 @@ async function apiFetch<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // Get auth token and add to headers if available
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add existing headers if any
+  if (options?.headers) {
+    Object.entries(options.headers).forEach(([key, value]) => {
+      if (typeof value === "string") {
+        headers[key] = value;
+      }
+    });
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   try {
     console.log(`[API] ${options?.method || "GET"} ${url}`);
     const response = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      headers,
       credentials: "include", // Include credentials for CORS
     });
 
@@ -159,4 +191,11 @@ export async function apiPatch<T>(
  */
 export async function apiDelete<T>(endpoint: string): Promise<T> {
   return apiFetch<T>(endpoint, { method: "DELETE" });
+}
+
+export async function oauthLogin(
+  provider: string,
+  token: string
+): Promise<{ accessToken: string; refreshToken: string }> {
+  return apiPost(`/auth/oauth/${provider}`, { token });
 }

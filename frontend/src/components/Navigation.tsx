@@ -4,13 +4,20 @@
  */
 
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { clearTokens } = useAuthContext();
 
   const isPlansActive = location.pathname.startsWith("/plans");
   const isSessionsActive = location.pathname.startsWith("/sessions");
+
+  const handleLogout = () => {
+    clearTokens();
+    navigate("/login");
+  };
 
   return (
     <nav
@@ -69,6 +76,28 @@ export function Navigation() {
             />
           </svg>
           <span className="text-xs font-medium">Sessions</span>
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="flex-1 flex flex-col items-center justify-center py-3 text-gray-600 hover:text-red-600 transition-colors"
+          aria-label="Logout"
+        >
+          <svg
+            className="w-6 h-6 mb-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          <span className="text-xs font-medium">Logout</span>
         </button>
       </div>
     </nav>

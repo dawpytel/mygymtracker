@@ -21,7 +21,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { WorkoutPlansService } from './workout-plans.service';
-import { DevAuthGuard } from '../auth/guards/dev-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   WorkoutPlanListDto,
   WorkoutPlanQueryDto,
@@ -33,16 +33,14 @@ import {
 /**
  * WorkoutPlansController - handles HTTP requests for workout plans
  *
- * DEVELOPMENT MODE:
- * - Using DevAuthGuard which automatically injects a default user
- * - No JWT token required for testing
- * - Default user ID: 00000000-0000-0000-0000-000000000001
- *
- * TODO: Replace DevAuthGuard with JwtAuthGuard when authentication is implemented
+ * AUTHENTICATION:
+ * - Protected by JwtAuthGuard - requires valid JWT token
+ * - JWT token must be provided in Authorization header as "Bearer <token>"
+ * - User context is automatically extracted from the token
  */
 @ApiTags('Workout Plans')
 @Controller('plans')
-@UseGuards(DevAuthGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class WorkoutPlansController {
   constructor(private readonly workoutPlansService: WorkoutPlansService) {}
@@ -189,7 +187,8 @@ export class WorkoutPlansController {
   @Put(':id')
   @ApiOperation({
     summary: 'Update a workout plan',
-    description: "Update a workout plan's name and/or exercises for the authenticated user",
+    description:
+      "Update a workout plan's name and/or exercises for the authenticated user",
   })
   @ApiParam({
     name: 'id',
@@ -277,10 +276,7 @@ export class WorkoutPlansController {
     status: 500,
     description: 'Internal server error',
   })
-  async delete(
-    @Param('id') id: string,
-    @Request() req,
-  ): Promise<void> {
+  async delete(@Param('id') id: string, @Request() req): Promise<void> {
     await this.workoutPlansService.deletePlan(req.user.id, id);
   }
 }

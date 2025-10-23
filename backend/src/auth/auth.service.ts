@@ -19,6 +19,9 @@ import {
   LoginResponseDto,
   LogoutResponseDto,
 } from '../types';
+import { OAuth2Client } from 'google-auth-library';
+import * as appleSignin from 'apple-signin-auth';
+import { UserOAuthProviderEntity } from '../users/entities/user-oauth-provider.entity';
 
 /**
  * AuthService - handles authentication business logic
@@ -31,6 +34,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserOAuthProviderEntity)
+    private readonly oauthRepo: Repository<UserOAuthProviderEntity>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -118,7 +123,10 @@ export class AuthService {
       }
 
       // Verify password
-      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash,
+      );
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
@@ -154,6 +162,67 @@ export class AuthService {
     }
   }
 
+  async oauthLogin(provider: string, token: string): Promise<LoginResponseDto> {
+    let email: string;
+    let providerUserId: string;
+    if (provider === 'google') {
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({ idToken: token });
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email || !payload.sub) {
+        throw new UnauthorizedException('Invalid Google OAuth token');
+      }
+      email = payload.email;
+      providerUserId = payload.sub;
+    } else {
+      const applePayload = await appleSignin.verifyIdToken(token, {
+        audience: process.env.APPLE_CLIENT_ID || '',
+        ignoreExpiration: false,
+      });
+      email = applePayload.email;
+      providerUserId = applePayload.sub;
+    }
+
+    // Upsert user and OAuth provider
+    let oauth = await this.oauthRepo.findOne({
+      where: { providerName: provider, providerUserId },
+    });
+    let user: User | null = null;
+    if (oauth) {
+      user = await this.userRepository.findOne({ where: { id: oauth.userId } });
+      if (!user) {
+        throw new UnauthorizedException('OAuth user not found');
+      }
+    } else {
+      user = await this.userRepository.findOne({ where: { email } });
+      if (!user) {
+        user = this.userRepository.create({
+          email,
+          password_hash: '',
+          account_created_at: new Date(),
+        });
+        user = await this.userRepository.save(user);
+      }
+      oauth = this.oauthRepo.create({
+        userId: user.id,
+        providerName: provider,
+        providerUserId,
+      });
+      await this.oauthRepo.save(oauth);
+    }
+
+    // Update last login
+    user.last_login_at = new Date();
+    await this.userRepository.save(user);
+
+    // Generate JWT tokens
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
+
+    return { accessToken, refreshToken };
+  }
+
   /**
    * Logout user (placeholder for token blacklisting)
    * @param userId - User ID
@@ -172,4 +241,3 @@ export class AuthService {
     };
   }
 }
-

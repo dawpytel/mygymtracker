@@ -7,6 +7,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from '../users/entities/user.entity';
+import { UserOAuthProviderEntity } from '../users/entities/user-oauth-provider.entity';
 
 /**
  * AuthModule - handles authentication and authorization
@@ -14,7 +15,7 @@ import { User } from '../users/entities/user.entity';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserOAuthProviderEntity]),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

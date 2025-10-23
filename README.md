@@ -219,3 +219,45 @@ git commit -m "feat: add user authentication endpoint"
 ## License
 
 MIT
+
+## OAuth Configuration
+
+1. Register your applications:
+
+   - **Google:** Create a Web OAuth Client in Google Cloud Console, set authorized origins and redirect URI.
+   - **Apple:** Create a Service ID in Apple Developer, enable Sign in with Apple for web, configure domain and return URL.
+
+2. Environment variables:
+
+   - Frontend (.env.local):
+     ```
+     VITE_GOOGLE_CLIENT_ID=your_google_client_id
+     VITE_APPLE_CLIENT_ID=your_apple_service_id
+     ```
+   - Backend (.env):
+     ```
+     GOOGLE_CLIENT_ID=your_google_client_id
+     GOOGLE_CLIENT_SECRET=your_google_client_secret
+     APPLE_CLIENT_ID=your_apple_service_id
+     APPLE_TEAM_ID=your_apple_team_id
+     APPLE_KEY_ID=your_apple_key_id
+     APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+     ```
+
+3. Frontend Setup:
+
+   - Install dependencies: `npm install @react-oauth/google`
+   - In `main.tsx`, wrap `<App />` with `<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>`.
+   - Include Apple JS SDK in `index.html`:
+     ```html
+     <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+     ```
+
+4. Backend Setup:
+
+   - Install dependencies: `npm install google-auth-library apple-signin-auth`
+   - Ensure `AuthService.oauthLogin` is implemented.
+
+5. Testing:
+   - Write unit tests for `AuthService.oauthLogin`.
+   - Manually verify login via Google and Apple on `/login`.
