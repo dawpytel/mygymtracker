@@ -26,7 +26,13 @@ import {
   CreateWorkoutSessionResponseDto,
   WorkoutSessionListDto,
   WorkoutSessionDto,
+  WorkoutSessionDetailDto,
   UpdateWorkoutSessionDto,
+  UpdateSessionExerciseDto,
+  CreateExerciseSetDto,
+  UpdateExerciseSetDto,
+  ExerciseSetDto,
+  SessionExerciseDto,
 } from '../types';
 
 /**
@@ -88,16 +94,17 @@ export class SessionsController {
   }
 
   /**
-   * GET /sessions/:id - Get a single workout session
+   * GET /sessions/:id - Get a single workout session with full details
    */
   @Get(':id')
   @ApiOperation({
-    summary: 'Get a single workout session with nested exercises and sets',
+    summary:
+      'Get a single workout session with full exercise details and history',
   })
   @ApiResponse({
     status: 200,
-    description: 'Successfully retrieved session',
-    type: WorkoutSessionDto,
+    description: 'Successfully retrieved session with full details',
+    type: WorkoutSessionDetailDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
@@ -105,7 +112,7 @@ export class SessionsController {
   async findOne(
     @Request() req,
     @Param('id') id: string,
-  ): Promise<WorkoutSessionDto> {
+  ): Promise<WorkoutSessionDetailDto> {
     const userId = req.user.id;
     return this.sessionsService.findOne(userId, id);
   }
@@ -147,5 +154,93 @@ export class SessionsController {
   async remove(@Request() req, @Param('id') id: string): Promise<void> {
     const userId = req.user.id;
     return this.sessionsService.remove(userId, id);
+  }
+
+  /**
+   * PATCH /sessions/:sessionId/exercises/:exerciseId - Update exercise notes
+   */
+  @Patch(':sessionId/exercises/:exerciseId')
+  @ApiOperation({ summary: 'Update session exercise notes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Exercise updated successfully',
+    type: SessionExerciseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
+  @ApiResponse({ status: 404, description: 'Session or exercise not found' })
+  async updateExercise(
+    @Request() req,
+    @Param('sessionId') sessionId: string,
+    @Param('exerciseId') exerciseId: string,
+    @Body() dto: UpdateSessionExerciseDto,
+  ): Promise<SessionExerciseDto> {
+    const userId = req.user.id;
+    return this.sessionsService.updateExercise(
+      userId,
+      sessionId,
+      exerciseId,
+      dto,
+    );
+  }
+
+  /**
+   * POST /sessions/:sessionId/exercises/:exerciseId/sets - Create a new set
+   */
+  @Post(':sessionId/exercises/:exerciseId/sets')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a set to a session exercise' })
+  @ApiResponse({
+    status: 201,
+    description: 'Set created successfully',
+    type: ExerciseSetDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
+  @ApiResponse({ status: 404, description: 'Session or exercise not found' })
+  async createSet(
+    @Request() req,
+    @Param('sessionId') sessionId: string,
+    @Param('exerciseId') exerciseId: string,
+    @Body() dto: CreateExerciseSetDto,
+  ): Promise<ExerciseSetDto> {
+    const userId = req.user.id;
+    return this.sessionsService.createSet(userId, sessionId, exerciseId, dto);
+  }
+
+  /**
+   * PATCH /sessions/:sessionId/exercises/:exerciseId/sets/:setId - Update a set
+   */
+  @Patch(':sessionId/exercises/:exerciseId/sets/:setId')
+  @ApiOperation({ summary: 'Update an exercise set' })
+  @ApiResponse({
+    status: 200,
+    description: 'Set updated successfully',
+    type: ExerciseSetDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
+  @ApiResponse({
+    status: 404,
+    description: 'Session, exercise, or set not found',
+  })
+  async updateSet(
+    @Request() req,
+    @Param('sessionId') sessionId: string,
+    @Param('exerciseId') exerciseId: string,
+    @Param('setId') setId: string,
+    @Body() dto: UpdateExerciseSetDto,
+  ): Promise<ExerciseSetDto> {
+    const userId = req.user.id;
+    return this.sessionsService.updateSet(
+      userId,
+      sessionId,
+      exerciseId,
+      setId,
+      dto,
+    );
   }
 }

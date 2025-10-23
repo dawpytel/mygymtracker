@@ -130,7 +130,7 @@ export function PlanListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <HeaderBar
         title="Workout Plans"
         actionLabel="Create New Plan"

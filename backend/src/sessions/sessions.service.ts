@@ -12,6 +12,7 @@ import { WorkoutSession } from './entities/workout-session.entity';
 import { SessionExercise } from './entities/session-exercise.entity';
 import { ExerciseSet } from './entities/exercise-set.entity';
 import { WorkoutPlan } from '../workout-plans/entities/workout-plan.entity';
+import { PlanExercise } from '../workout-plans/entities/plan-exercise.entity';
 import {
   SessionQueryDto,
   CreateWorkoutSessionDto,
@@ -19,10 +20,18 @@ import {
   WorkoutSessionListDto,
   WorkoutSessionListItemDto,
   WorkoutSessionDto,
+  WorkoutSessionDetailDto,
+  SessionExerciseDetailDto,
+  ExerciseHistoryEntry,
   UpdateWorkoutSessionDto,
   SessionStatus,
   SessionExerciseDto,
   ExerciseSetDto,
+  IntensityTechnique,
+  SetType,
+  UpdateSessionExerciseDto,
+  CreateExerciseSetDto,
+  UpdateExerciseSetDto,
 } from '../types';
 
 /**
@@ -41,6 +50,8 @@ export class SessionsService {
     private readonly exerciseSetRepository: Repository<ExerciseSet>,
     @InjectRepository(WorkoutPlan)
     private readonly planRepository: Repository<WorkoutPlan>,
+    @InjectRepository(PlanExercise)
+    private readonly planExerciseRepository: Repository<PlanExercise>,
   ) {}
 
   /**
@@ -103,6 +114,12 @@ export class SessionsService {
         );
       }
 
+      // Get all exercises from the plan
+      const planExercises = await this.planExerciseRepository.find({
+        where: { plan_id: dto.plan_id },
+        order: { display_order: 'ASC' },
+      });
+
       // Create new session
       const session = this.sessionRepository.create({
         user_id: userId,
@@ -112,6 +129,22 @@ export class SessionsService {
       });
 
       const savedSession = await this.sessionRepository.save(session);
+
+      // Create session exercises from plan exercises
+      const sessionExercises = planExercises.map((planExercise) => {
+        return this.sessionExerciseRepository.create({
+          session_id: savedSession.id,
+          plan_exercise_id: planExercise.id,
+          exercise_id: planExercise.exercise_id,
+          display_order: planExercise.display_order,
+          notes: planExercise.notes || '',
+        });
+      });
+
+      // Save all session exercises
+      if (sessionExercises.length > 0) {
+        await this.sessionExerciseRepository.save(sessionExercises);
+      }
 
       return {
         id: savedSession.id,
@@ -134,13 +167,20 @@ export class SessionsService {
   }
 
   /**
-   * Get a single workout session with nested exercises and sets
+   * Get a single workout session with full exercise details and history
    */
-  async findOne(userId: string, sessionId: string): Promise<WorkoutSessionDto> {
+  async findOne(
+    userId: string,
+    sessionId: string,
+  ): Promise<WorkoutSessionDetailDto> {
     try {
       const session = await this.sessionRepository.findOne({
         where: { id: sessionId },
-        relations: ['session_exercises', 'session_exercises.exercise_sets'],
+        relations: [
+          'session_exercises',
+          'session_exercises.exercise_sets',
+          'session_exercises.exercise',
+        ],
       });
 
       if (!session) {
@@ -156,23 +196,50 @@ export class SessionsService {
         );
       }
 
-      // Map to DTO
-      const exercises: SessionExerciseDto[] = (
-        session.session_exercises || []
-      ).map((exercise) => ({
-        id: exercise.id,
-        exercise_id: exercise.exercise_id,
-        display_order: exercise.display_order,
-        notes: exercise.notes,
-        sets: (exercise.exercise_sets || []).map((set) => ({
-          id: set.id,
-          set_type: set.set_type,
-          set_index: set.set_index,
-          reps: set.reps,
-          load: set.load,
-          created_at: set.created_at,
-        })),
-      }));
+      // Map to DTO with extended data
+      const exercises: SessionExerciseDetailDto[] = await Promise.all(
+        (session.session_exercises || []).map(async (sessionExercise) => {
+          // Fetch plan exercise data if available
+          let planExercise: PlanExercise | null = null;
+          if (sessionExercise.plan_exercise_id) {
+            planExercise = await this.planExerciseRepository.findOne({
+              where: { id: sessionExercise.plan_exercise_id },
+            });
+          }
+
+          // Fetch recent history for this exercise (last 5 completed sessions)
+          const history = await this.getExerciseHistory(
+            userId,
+            sessionExercise.exercise_id,
+            5,
+          );
+
+          return {
+            id: sessionExercise.id,
+            exercise_id: sessionExercise.exercise_id,
+            exercise_name: sessionExercise.exercise?.name || 'Unknown Exercise',
+            display_order: sessionExercise.display_order,
+            warmup_sets: planExercise?.warmup_sets || 0,
+            working_sets: planExercise?.working_sets || 3,
+            target_reps: planExercise?.target_reps || 10,
+            rpe_early: planExercise?.rpe_early || 7,
+            rpe_last: planExercise?.rpe_last || 9,
+            rest_time: planExercise?.rest_time || 120,
+            intensity_technique:
+              planExercise?.intensity_technique || IntensityTechnique.NA,
+            notes: sessionExercise.notes || '',
+            history: history || [],
+            sets: (sessionExercise.exercise_sets || []).map((set) => ({
+              id: set.id,
+              set_type: set.set_type,
+              set_index: set.set_index,
+              reps: set.reps,
+              load: set.load,
+              created_at: set.created_at,
+            })),
+          };
+        }),
+      );
 
       return {
         id: session.id,
@@ -193,6 +260,64 @@ export class SessionsService {
         error.stack,
       );
       throw new InternalServerErrorException('Failed to retrieve session');
+    }
+  }
+
+  /**
+   * Get recent history for an exercise
+   * Returns the last N completed sessions for a specific exercise
+   */
+  private async getExerciseHistory(
+    userId: string,
+    exerciseId: string,
+    limit: number = 5,
+  ): Promise<ExerciseHistoryEntry[]> {
+    try {
+      // Query completed sessions with this exercise
+      const completedSessions = await this.sessionRepository
+        .createQueryBuilder('session')
+        .innerJoin('session.session_exercises', 'se')
+        .innerJoin('se.exercise_sets', 'es')
+        .where('session.user_id = :userId', { userId })
+        .andWhere('session.status = :status', {
+          status: SessionStatus.COMPLETED,
+        })
+        .andWhere('se.exercise_id = :exerciseId', { exerciseId })
+        .orderBy('session.completed_at', 'DESC')
+        .limit(limit)
+        .select(['session.completed_at', 'es.reps', 'es.load', 'es.set_type'])
+        .getRawMany();
+
+      // Group by session and get the best working set from each
+      const historyMap = new Map<string, ExerciseHistoryEntry>();
+
+      completedSessions.forEach((row) => {
+        const date = row.session_completed_at;
+        // Only consider working sets for history
+        if (row.es_set_type === 'working') {
+          const existing = historyMap.get(date);
+          if (
+            !existing ||
+            row.es_load > existing.load ||
+            (row.es_load === existing.load && row.es_reps > existing.reps)
+          ) {
+            historyMap.set(date, {
+              date: new Date(date).toISOString(),
+              reps: row.es_reps,
+              load: row.es_load,
+            });
+          }
+        }
+      });
+
+      return Array.from(historyMap.values()).slice(0, limit);
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch exercise history for exercise ${exerciseId}:`,
+        error.stack,
+      );
+      // Return empty history on error rather than failing the whole request
+      return [];
     }
   }
 
@@ -324,6 +449,270 @@ export class SessionsService {
       }
       this.logger.error(`Failed to cancel session ${sessionId}:`, error.stack);
       throw new InternalServerErrorException('Failed to cancel session');
+    }
+  }
+
+  /**
+   * Update exercise notes within a session
+   */
+  async updateExercise(
+    userId: string,
+    sessionId: string,
+    exerciseId: string,
+    dto: UpdateSessionExerciseDto,
+  ): Promise<SessionExerciseDto> {
+    try {
+      // Verify session exists and belongs to user
+      const session = await this.sessionRepository.findOne({
+        where: { id: sessionId },
+      });
+
+      if (!session) {
+        throw new NotFoundException(
+          `Workout session with ID ${sessionId} not found`,
+        );
+      }
+
+      if (session.user_id !== userId) {
+        throw new ForbiddenException(
+          'You do not have permission to update this session',
+        );
+      }
+
+      // Verify session is in progress
+      if (session.status !== SessionStatus.IN_PROGRESS) {
+        throw new BadRequestException(
+          'Only in-progress sessions can be updated',
+        );
+      }
+
+      // Find and update the exercise
+      const exercise = await this.sessionExerciseRepository.findOne({
+        where: { id: exerciseId, session_id: sessionId },
+        relations: ['exercise_sets'],
+      });
+
+      if (!exercise) {
+        throw new NotFoundException(
+          `Exercise with ID ${exerciseId} not found in session ${sessionId}`,
+        );
+      }
+
+      // Update fields
+      if (dto.notes !== undefined) {
+        exercise.notes = dto.notes;
+      }
+      if (dto.display_order !== undefined) {
+        exercise.display_order = dto.display_order;
+      }
+
+      const updatedExercise =
+        await this.sessionExerciseRepository.save(exercise);
+
+      return {
+        id: updatedExercise.id,
+        exercise_id: updatedExercise.exercise_id,
+        display_order: updatedExercise.display_order,
+        notes: updatedExercise.notes,
+        sets: (updatedExercise.exercise_sets || []).map((set) => ({
+          id: set.id,
+          set_type: set.set_type,
+          set_index: set.set_index,
+          reps: set.reps,
+          load: set.load,
+          created_at: set.created_at,
+        })),
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to update exercise ${exerciseId} in session ${sessionId}:`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to update exercise');
+    }
+  }
+
+  /**
+   * Create a new set for an exercise
+   */
+  async createSet(
+    userId: string,
+    sessionId: string,
+    exerciseId: string,
+    dto: CreateExerciseSetDto,
+  ): Promise<ExerciseSetDto> {
+    try {
+      // Verify session exists and belongs to user
+      const session = await this.sessionRepository.findOne({
+        where: { id: sessionId },
+      });
+
+      if (!session) {
+        throw new NotFoundException(
+          `Workout session with ID ${sessionId} not found`,
+        );
+      }
+
+      if (session.user_id !== userId) {
+        throw new ForbiddenException(
+          'You do not have permission to update this session',
+        );
+      }
+
+      // Verify session is in progress
+      if (session.status !== SessionStatus.IN_PROGRESS) {
+        throw new BadRequestException(
+          'Only in-progress sessions can be updated',
+        );
+      }
+
+      // Verify exercise exists in session
+      const exercise = await this.sessionExerciseRepository.findOne({
+        where: { id: exerciseId, session_id: sessionId },
+      });
+
+      if (!exercise) {
+        throw new NotFoundException(
+          `Exercise with ID ${exerciseId} not found in session ${sessionId}`,
+        );
+      }
+
+      // Create new set
+      const set = this.exerciseSetRepository.create({
+        session_exercise_id: exerciseId,
+        set_type: dto.set_type,
+        set_index: dto.set_index,
+        reps: dto.reps,
+        load: dto.load,
+      });
+
+      const savedSet = await this.exerciseSetRepository.save(set);
+
+      return {
+        id: savedSet.id,
+        set_type: savedSet.set_type,
+        set_index: savedSet.set_index,
+        reps: savedSet.reps,
+        load: savedSet.load,
+        created_at: savedSet.created_at,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to create set for exercise ${exerciseId} in session ${sessionId}:`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to create set');
+    }
+  }
+
+  /**
+   * Update an existing set
+   */
+  async updateSet(
+    userId: string,
+    sessionId: string,
+    exerciseId: string,
+    setId: string,
+    dto: UpdateExerciseSetDto,
+  ): Promise<ExerciseSetDto> {
+    try {
+      // Verify session exists and belongs to user
+      const session = await this.sessionRepository.findOne({
+        where: { id: sessionId },
+      });
+
+      if (!session) {
+        throw new NotFoundException(
+          `Workout session with ID ${sessionId} not found`,
+        );
+      }
+
+      if (session.user_id !== userId) {
+        throw new ForbiddenException(
+          'You do not have permission to update this session',
+        );
+      }
+
+      // Verify session is in progress
+      if (session.status !== SessionStatus.IN_PROGRESS) {
+        throw new BadRequestException(
+          'Only in-progress sessions can be updated',
+        );
+      }
+
+      // Verify exercise exists in session
+      const exercise = await this.sessionExerciseRepository.findOne({
+        where: { id: exerciseId, session_id: sessionId },
+      });
+
+      if (!exercise) {
+        throw new NotFoundException(
+          `Exercise with ID ${exerciseId} not found in session ${sessionId}`,
+        );
+      }
+
+      // Find and update the set
+      const set = await this.exerciseSetRepository.findOne({
+        where: { id: setId, session_exercise_id: exerciseId },
+      });
+
+      if (!set) {
+        throw new NotFoundException(
+          `Set with ID ${setId} not found in exercise ${exerciseId}`,
+        );
+      }
+
+      // Update fields
+      if (dto.set_type !== undefined) {
+        set.set_type = dto.set_type;
+      }
+      if (dto.set_index !== undefined) {
+        set.set_index = dto.set_index;
+      }
+      if (dto.reps !== undefined) {
+        set.reps = dto.reps;
+      }
+      if (dto.load !== undefined) {
+        set.load = dto.load;
+      }
+
+      const updatedSet = await this.exerciseSetRepository.save(set);
+
+      return {
+        id: updatedSet.id,
+        set_type: updatedSet.set_type,
+        set_index: updatedSet.set_index,
+        reps: updatedSet.reps,
+        load: updatedSet.load,
+        created_at: updatedSet.created_at,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to update set ${setId} in exercise ${exerciseId}:`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to update set');
     }
   }
 }

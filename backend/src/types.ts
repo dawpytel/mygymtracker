@@ -1349,3 +1349,165 @@ export class UpdateWorkoutSessionDto {
   @IsEnum(SessionStatus)
   status: SessionStatus.COMPLETED | SessionStatus.CANCELLED;
 }
+
+/**
+ * Exercise history entry for session detail view
+ */
+export interface ExerciseHistoryEntry {
+  date: string; // ISO date string
+  reps: number;
+  load: number;
+}
+
+/**
+ * Extended session exercise DTO with plan exercise data and history
+ */
+export class SessionExerciseDetailDto {
+  @ApiProperty({
+    description: 'Session exercise unique identifier',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Exercise unique identifier',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+  })
+  exercise_id: string;
+
+  @ApiProperty({
+    description: 'Exercise name',
+    example: 'Bench Press',
+  })
+  exercise_name: string;
+
+  @ApiProperty({
+    description: 'Display order of exercise in the session',
+    example: 1,
+    minimum: 0,
+  })
+  display_order: number;
+
+  @ApiProperty({
+    description: 'Number of warmup sets from plan',
+    example: 2,
+    minimum: 0,
+  })
+  warmup_sets: number;
+
+  @ApiProperty({
+    description: 'Number of working sets from plan',
+    example: 3,
+    minimum: 0,
+    maximum: 4,
+  })
+  working_sets: number;
+
+  @ApiProperty({
+    description: 'Target repetitions per set from plan',
+    example: 10,
+    minimum: 1,
+  })
+  target_reps: number;
+
+  @ApiProperty({
+    description: 'RPE for early sets from plan',
+    example: 7,
+    minimum: 1,
+    maximum: 10,
+  })
+  rpe_early: number;
+
+  @ApiProperty({
+    description: 'RPE for last set from plan',
+    example: 9,
+    minimum: 1,
+    maximum: 10,
+  })
+  rpe_last: number;
+
+  @ApiProperty({
+    description: 'Rest time between sets in seconds from plan',
+    example: 120,
+    minimum: 0,
+  })
+  rest_time: number;
+
+  @ApiProperty({
+    description: 'Intensity technique from plan',
+    enum: IntensityTechnique,
+    example: IntensityTechnique.DROP_SET,
+  })
+  intensity_technique: IntensityTechnique;
+
+  @ApiProperty({
+    description: 'Additional notes for this exercise in the session',
+    example: 'Felt strong today, increased weight',
+    maxLength: 500,
+  })
+  notes: string;
+
+  @ApiProperty({
+    description: 'Recent history of this exercise from previous sessions',
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        date: { type: 'string', format: 'date-time' },
+        reps: { type: 'number' },
+        load: { type: 'number' },
+      },
+    },
+  })
+  history: ExerciseHistoryEntry[];
+
+  @ApiProperty({
+    description: 'List of sets performed for this exercise',
+    type: [ExerciseSetDto],
+  })
+  sets: ExerciseSetDto[];
+}
+
+/**
+ * Extended workout session DTO with full exercise details
+ */
+export class WorkoutSessionDetailDto {
+  @ApiProperty({
+    description: 'Workout session unique identifier',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Session status',
+    enum: SessionStatus,
+    example: SessionStatus.IN_PROGRESS,
+  })
+  status: SessionStatus;
+
+  @ApiProperty({
+    description: 'Session start timestamp',
+    example: '2025-10-14T12:00:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
+  started_at: Date;
+
+  @ApiProperty({
+    description: 'Session completion timestamp',
+    example: '2025-10-14T13:30:00.000Z',
+    type: String,
+    format: 'date-time',
+    nullable: true,
+  })
+  completed_at: Date | null;
+
+  @ApiProperty({
+    description: 'List of exercises with full details',
+    type: [SessionExerciseDetailDto],
+  })
+  exercises: SessionExerciseDetailDto[];
+}

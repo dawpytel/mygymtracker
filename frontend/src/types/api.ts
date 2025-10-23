@@ -126,3 +126,23 @@ export interface UpdateWorkoutPlanDto {
   plan_name: string;
   exercises?: PlanExerciseInputDto[];
 }
+
+// ============================================================================
+// SESSION TYPES
+// ============================================================================
+
+export const SessionStatus = {
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+} as const;
+
+export type SessionStatus =
+  (typeof SessionStatus)[keyof typeof SessionStatus];
+
+export const SetType = {
+  WARMUP: "warmup",
+  WORKING: "working",
+} as const;
+
+export type SetType = (typeof SetType)[keyof typeof SetType];
