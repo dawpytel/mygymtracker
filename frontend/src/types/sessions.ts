@@ -149,6 +149,15 @@ export interface ExerciseHistoryEntry {
 }
 
 /**
+ * Warmup set suggestion for an exercise
+ */
+export interface WarmupSetSuggestion {
+  load: number; // Recommended load in kg
+  reps: number; // Recommended repetitions
+  percentage: number; // Percentage of working load
+}
+
+/**
  * Full workout session detail
  */
 export interface WorkoutSessionDto {
@@ -172,6 +181,7 @@ export interface SessionExerciseDetailDto extends SessionExerciseDto {
   rest_time: number;
   intensity_technique: string;
   history: ExerciseHistoryEntry[];
+  warmup_suggestions: WarmupSetSuggestion[];
 }
 
 /**
@@ -227,6 +237,7 @@ export interface ExerciseAccordionViewModel {
   intensityTechnique: string;
   notes: string;
   history: ExerciseHistoryEntry[];
+  warmupSuggestions: WarmupSetSuggestion[];
   sets: SetViewModel[];
 }
 

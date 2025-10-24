@@ -7,6 +7,7 @@ import { SessionExercise } from './entities/session-exercise.entity';
 import { ExerciseSet } from './entities/exercise-set.entity';
 import { WorkoutPlan } from '../workout-plans/entities/workout-plan.entity';
 import { PlanExercise } from '../workout-plans/entities/plan-exercise.entity';
+import { WarmupService } from '../common/warmup/warmup.service';
 
 /**
  * SessionsModule - handles workout session management
@@ -23,7 +24,7 @@ import { PlanExercise } from '../workout-plans/entities/plan-exercise.entity';
     ]),
   ],
   controllers: [SessionsController],
-  providers: [SessionsService],
+  providers: [SessionsService, WarmupService],
   exports: [SessionsService],
 })
 export class SessionsModule {}

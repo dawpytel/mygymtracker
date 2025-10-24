@@ -1359,6 +1359,18 @@ export interface ExerciseHistoryEntry {
 }
 
 /**
+ * Warmup set suggestion for an exercise
+ */
+export interface WarmupSetSuggestion {
+  /** Recommended load in kg, rounded to nearest practical increment */
+  load: number;
+  /** Recommended repetitions for this warmup set */
+  reps: number;
+  /** Percentage of working load this represents */
+  percentage: number;
+}
+
+/**
  * Extended session exercise DTO with plan exercise data and history
  */
 export class SessionExerciseDetailDto {
@@ -1461,6 +1473,23 @@ export class SessionExerciseDetailDto {
     },
   })
   history: ExerciseHistoryEntry[];
+
+  @ApiProperty({
+    description: 'Intelligent warmup set recommendations based on historical data',
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        load: { type: 'number', description: 'Recommended load in kg' },
+        reps: { type: 'number', description: 'Recommended reps' },
+        percentage: {
+          type: 'number',
+          description: 'Percentage of working load',
+        },
+      },
+    },
+  })
+  warmup_suggestions: WarmupSetSuggestion[];
 
   @ApiProperty({
     description: 'List of sets performed for this exercise',

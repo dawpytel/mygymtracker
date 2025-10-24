@@ -44,6 +44,7 @@ Most workout tracking applications available on the market are designed for peop
   - Exercise name with automatically expanded (but collapsible) AI-generated technique description.
   - Target RPE values and rest time (read-only).
   - History of 3-5 most recent results for that exercise (collapsible view).
+  - Intelligent warmup set recommendations based on historical working loads (read-only suggestions).
   - Input fields for actual reps and load (in kg, with precision to one decimal place).
 - Workout saving is manual; no auto-save feature.
 - Partially completed workouts can be saved.
@@ -282,9 +283,23 @@ The following features are not in scope for the MVP:
 - **Title:** Deleting workout from history
 - **Description:** As a user, I want to be able to delete a workout from my history if it was saved by mistake or for other reasons.
 - **Acceptance Criteria:**
+
   1. In the detail view or on the history list there is a "Delete" option.
   2. User must confirm the desire to delete the entry in a modal window.
   3. After confirmation, the workout is permanently removed from history.
+
+- **ID:** US-022
+- **Title:** Automatic warmup set recommendations
+- **Description:** As a user, when I start a workout session, I want to see intelligent warmup set suggestions based on my historical working loads so that I can efficiently prepare for my working sets without manual calculation.
+- **Acceptance Criteria:**
+  1. When viewing an exercise during a workout session, warmup set recommendations are automatically calculated and displayed.
+  2. Warmup recommendations are based on the user's most recent working load for that exercise from their workout history.
+  3. If no history exists for an exercise, a default progressive warmup scheme is suggested based on typical working loads.
+  4. Each warmup set suggestion displays load (in kg) and recommended reps (e.g., "20 kg × 5 reps").
+  5. Warmup suggestions follow a progressive loading pattern (e.g., 50%, 60%, 70% of working weight).
+  6. The number of warmup sets shown matches the number configured in the workout plan.
+  7. Warmup recommendations are displayed prominently above the working sets section.
+  8. Users can view but not directly edit the recommendations (they can log different values if needed).
 
 ## 6. Success Metrics
 

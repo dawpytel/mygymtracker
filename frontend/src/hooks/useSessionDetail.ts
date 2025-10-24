@@ -106,6 +106,7 @@ function transformToViewModel(
         intensityTechnique: exercise.intensity_technique,
         notes: exercise.notes || '',
         history: exercise.history || [],
+        warmupSuggestions: exercise.warmup_suggestions || [],
         sets,
       };
     }),

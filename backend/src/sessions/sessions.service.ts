@@ -32,7 +32,9 @@ import {
   UpdateSessionExerciseDto,
   CreateExerciseSetDto,
   UpdateExerciseSetDto,
+  WarmupSetSuggestion,
 } from '../types';
+import { WarmupService } from '../common/warmup/warmup.service';
 
 /**
  * SessionsService - handles business logic for workout sessions
@@ -52,6 +54,7 @@ export class SessionsService {
     private readonly planRepository: Repository<WorkoutPlan>,
     @InjectRepository(PlanExercise)
     private readonly planExerciseRepository: Repository<PlanExercise>,
+    private readonly warmupService: WarmupService,
   ) {}
 
   /**
@@ -214,6 +217,12 @@ export class SessionsService {
             5,
           );
 
+          // Calculate warmup suggestions based on history
+          const warmupSuggestions = this.calculateWarmupSuggestions(
+            history,
+            planExercise?.warmup_sets || 0,
+          );
+
           return {
             id: sessionExercise.id,
             exercise_id: sessionExercise.exercise_id,
@@ -229,6 +238,7 @@ export class SessionsService {
               planExercise?.intensity_technique || IntensityTechnique.NA,
             notes: sessionExercise.notes || '',
             history: history || [],
+            warmup_suggestions: warmupSuggestions,
             sets: (sessionExercise.exercise_sets || []).map((set) => ({
               id: set.id,
               set_type: set.set_type,
@@ -713,6 +723,48 @@ export class SessionsService {
         error.stack,
       );
       throw new InternalServerErrorException('Failed to update set');
+    }
+  }
+
+  /**
+   * Calculate warmup set suggestions based on exercise history
+   * Uses the WarmupService to generate intelligent recommendations
+   *
+   * @param history - Recent exercise history entries
+   * @param numberOfWarmupSets - Number of warmup sets configured in plan
+   * @returns Array of warmup set suggestions
+   */
+  private calculateWarmupSuggestions(
+    history: ExerciseHistoryEntry[],
+    numberOfWarmupSets: number,
+  ): WarmupSetSuggestion[] {
+    // Guard clause: no warmup sets requested
+    if (numberOfWarmupSets <= 0) {
+      return [];
+    }
+
+    try {
+      // Extract working loads from history
+      const recentWorkingLoads = history.map((entry) => entry.load);
+
+      // Use warmup service to calculate suggestions
+      const suggestions = this.warmupService.calculateFromHistory(
+        recentWorkingLoads,
+        numberOfWarmupSets,
+      );
+
+      this.logger.debug(
+        `Generated ${suggestions.length} warmup suggestions based on ${recentWorkingLoads.length} historical entries`,
+      );
+
+      return suggestions;
+    } catch (error) {
+      // Fallback: return empty array on error rather than failing the whole request
+      this.logger.error(
+        'Failed to calculate warmup suggestions:',
+        error.stack,
+      );
+      return [];
     }
   }
 }

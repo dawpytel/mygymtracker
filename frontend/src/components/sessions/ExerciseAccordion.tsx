@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { TechniqueDescription } from "./TechniqueDescription";
 import { HistoryPanel } from "./HistoryPanel";
+import { WarmupPanel } from "./WarmupPanel";
 import { SetInput } from "./SetInput";
 import { NotesInput } from "./NotesInput";
 import { Timer } from "./Timer";
@@ -75,6 +76,9 @@ export function ExerciseAccordion({
           {exercise.history.length > 0 && (
             <HistoryPanel history={exercise.history} />
           )}
+
+          {/* Warmup Suggestions */}
+          <WarmupPanel suggestions={exercise.warmupSuggestions} />
 
           {/* Sets Section */}
           <div className="space-y-2">
