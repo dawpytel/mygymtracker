@@ -15,6 +15,7 @@ interface AuthContextValue {
   setTokens: (accessToken: string, refreshToken: string) => void;
   clearTokens: () => void;
   getAuthHeader: () => string | null;
+  oauthLogin: (provider: string, token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -44,4 +45,3 @@ export function useAuthContext(): AuthContextValue {
   }
   return context;
 }
-

@@ -5,6 +5,7 @@
 
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuthContext } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface OAuthButtonsProps {
   isLoading?: boolean;
@@ -12,6 +13,7 @@ interface OAuthButtonsProps {
 
 export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
   const { oauthLogin } = useAuthContext();
+  const navigate = useNavigate();
 
   const handleGoogleSuccess = async (credentialResponse: {
     credential?: string;
@@ -23,7 +25,12 @@ export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
     }
 
     try {
+      console.log("[OAuthButtons] Calling oauthLogin with Google credential");
       await oauthLogin("google", credentialResponse.credential);
+      console.log("[OAuthButtons] oauthLogin completed successfully");
+
+      // Navigate to home after successful OAuth login
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("[OAuthButtons] Failed to process Google login:", error);
     }
