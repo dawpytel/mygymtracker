@@ -99,7 +99,7 @@ npm run start:dev
 
 ```bash
 # Check database
-psql -d mygymtracker_dev -U mygymtracker_user
+psql -d myapp_dev -U postgres
 
 # Query session exercises
 SELECT * FROM session_exercises WHERE session_id = '<session-id>';
@@ -238,7 +238,7 @@ curl -X GET http://localhost:3000/api/sessions/<session-id> \
   -H "Content-Type: application/json" | jq
 
 # Check database
-psql -d mygymtracker_dev -U mygymtracker_user
+psql -d myapp_dev -U postgres
 \dt
 SELECT * FROM workout_sessions;
 SELECT * FROM session_exercises;

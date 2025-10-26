@@ -48,7 +48,7 @@ npm run db:seed-dev
 **Or manually via psql:**
 
 ```bash
-psql -U postgres -d mygymtracker -f src/db/seed-dev-user.sql
+psql -U postgres -d myapp_dev -f src/db/seed-dev-user.sql
 ```
 
 ### 4. Verify User Creation
@@ -56,7 +56,7 @@ psql -U postgres -d mygymtracker -f src/db/seed-dev-user.sql
 Connect to the database and verify the user exists:
 
 ```bash
-psql -U postgres -d mygymtracker
+psql -U postgres -d myapp_dev
 ```
 
 ```sql
@@ -235,10 +235,10 @@ cat .env | grep DB_
 
 ```bash
 # Verify user exists
-psql -U postgres -d mygymtracker -c "SELECT * FROM users WHERE id = '00000000-0000-0000-0000-000000000001';"
+psql -U postgres -d myapp_dev -c "SELECT * FROM users WHERE id = '00000000-0000-0000-0000-000000000001';"
 
 # Verify plans exist
-psql -U postgres -d mygymtracker -c "SELECT * FROM workout_plans WHERE user_id = '00000000-0000-0000-0000-000000000001';"
+psql -U postgres -d myapp_dev -c "SELECT * FROM workout_plans WHERE user_id = '00000000-0000-0000-0000-000000000001';"
 
 # If no plans, re-run seed script
 npm run db:seed-dev

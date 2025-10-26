@@ -4,7 +4,7 @@
 -- This script creates a default user for development purposes
 -- Run this after running the initial schema migration
 --
--- To execute: psql -U postgres -d mygymtracker -f seed-dev-user.sql
+-- To execute: psql -U postgres -d myapp_dev -f seed-dev-user.sql
 -- Or via npm script: npm run db:seed-dev
 -- ============================================================================
 

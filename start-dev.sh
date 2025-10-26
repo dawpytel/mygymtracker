@@ -45,7 +45,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
-DB_DATABASE=myapp_dev
+DB_NAME=myapp_dev
 
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRES_IN=1d

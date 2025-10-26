@@ -26,14 +26,14 @@ npm run test:cov
 
 ## Test Files Overview
 
-| File | Endpoints Tested | Test Count |
-|------|-----------------|------------|
-| `auth.e2e-spec.ts` | POST /auth/register, /auth/login, /auth/logout | 20+ |
-| `users.e2e-spec.ts` | GET /users/me | 8+ |
-| `exercises.e2e-spec.ts` | GET /exercises, GET /exercises/:id | 25+ |
-| `workout-plans.e2e-spec.ts` | CRUD /plans | 45+ |
-| `workout-sessions.e2e-spec.ts` | CRUD /sessions + exercises | 50+ |
-| `exercise-sets.e2e-spec.ts` | POST/PATCH sets | 35+ |
+| File                           | Endpoints Tested                               | Test Count |
+| ------------------------------ | ---------------------------------------------- | ---------- |
+| `auth.e2e-spec.ts`             | POST /auth/register, /auth/login, /auth/logout | 20+        |
+| `users.e2e-spec.ts`            | GET /users/me                                  | 8+         |
+| `exercises.e2e-spec.ts`        | GET /exercises, GET /exercises/:id             | 25+        |
+| `workout-plans.e2e-spec.ts`    | CRUD /plans                                    | 45+        |
+| `workout-sessions.e2e-spec.ts` | CRUD /sessions + exercises                     | 50+        |
+| `exercise-sets.e2e-spec.ts`    | POST/PATCH sets                                | 35+        |
 
 **Total: 180+ comprehensive E2E tests**
 
@@ -46,6 +46,7 @@ npm run test:e2e -- auth.e2e-spec.ts
 ```
 
 Tests:
+
 - User registration
 - Login with email/password
 - OAuth authentication
@@ -60,6 +61,7 @@ npm run test:e2e -- users.e2e-spec.ts
 ```
 
 Tests:
+
 - Retrieving user profile
 - Authentication requirements
 - Last login tracking
@@ -72,6 +74,7 @@ npm run test:e2e -- exercises.e2e-spec.ts
 ```
 
 Tests:
+
 - Listing exercises
 - Search/autocomplete
 - Pagination
@@ -84,6 +87,7 @@ npm run test:e2e -- workout-plans.e2e-spec.ts
 ```
 
 Tests:
+
 - Creating plans with exercises
 - Updating plans
 - Deleting plans
@@ -98,6 +102,7 @@ npm run test:e2e -- exercise-sets.e2e-spec.ts
 ```
 
 Tests:
+
 - Starting workout sessions
 - Logging sets (warmup/working)
 - Updating session status
@@ -171,7 +176,7 @@ it('should do something', async () => {
   const response = await request(app.getHttpServer())
     .post('/endpoint')
     .send(data);
-  
+
   console.log('Response:', response.body); // Debug output
   expect(response.status).toBe(201);
 });
@@ -203,10 +208,10 @@ it.only('should create user', async () => {
 
 ```typescript
 // From mock-data.ts
-testUsers.user1.email     // 'user1@test.com'
-testUsers.user1.password  // 'password123'
-testUsers.user2.email     // 'user2@test.com'
-testUsers.user2.password  // 'password456'
+testUsers.user1.email; // 'user1@test.com'
+testUsers.user1.password; // 'password123'
+testUsers.user2.email; // 'user2@test.com'
+testUsers.user2.password; // 'password456'
 ```
 
 ### Valid Plan Exercise
@@ -250,7 +255,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
-DB_DATABASE=mygymtracker
+DB_NAME=myapp_dev
 ```
 
 ### 2. Test Database (Optional)
@@ -258,13 +263,13 @@ DB_DATABASE=mygymtracker
 For isolated test database:
 
 ```env
-DB_DATABASE=mygymtracker_test
+DB_NAME=myapp_e2e
 ```
 
 Then create the database:
 
 ```bash
-psql -U postgres -c "CREATE DATABASE mygymtracker_test;"
+psql -U postgres -c "CREATE DATABASE myapp_e2e;"
 npm run migration:run
 ```
 
@@ -291,6 +296,7 @@ start coverage/lcov-report/index.html
 ### Issue: "Cannot connect to database"
 
 **Solution:**
+
 ```bash
 # Check if PostgreSQL is running
 pg_isready
@@ -309,6 +315,7 @@ docker-compose up -d
 ### Issue: "Migration not found"
 
 **Solution:**
+
 ```bash
 # Run migrations
 npm run migration:run
@@ -320,7 +327,9 @@ npm run migration:show
 ### Issue: "Test timeout"
 
 **Solution:**
+
 1. Increase timeout in `jest-e2e.json`:
+
    ```json
    {
      "testTimeout": 30000
@@ -337,6 +346,7 @@ npm run migration:show
 ### Issue: "Port already in use"
 
 **Solution:**
+
 ```bash
 # Find process using port 3000
 lsof -i :3000
@@ -367,4 +377,3 @@ After running tests:
 - Check [README.md](./README.md) for detailed documentation
 - Review [API Plan](../../../ai/api-plan.md) for endpoint specifications
 - See test files for example usage patterns
-

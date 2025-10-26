@@ -29,7 +29,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
-DB_NAME=mygymtracker
+DB_NAME=myapp_dev
 NODE_ENV=development
 ```
 
@@ -43,21 +43,21 @@ docker-compose up -d postgres
 
 ### 4. Create Database
 
-You need to create the `mygymtracker` database before running migrations. Choose one of these methods:
+You need to create the `myapp_dev` database before running migrations. Choose one of these methods:
 
 **Option A: Using Docker Compose exec** (Recommended)
 ```bash
-docker-compose exec postgres psql -U postgres -c "CREATE DATABASE mygymtracker;"
+docker-compose exec postgres psql -U postgres -c "CREATE DATABASE myapp_dev;"
 ```
 
 **Option B: Using docker exec with container name**
 ```bash
-docker exec -it myapp-postgres psql -U postgres -c "CREATE DATABASE mygymtracker;"
+docker exec -it myapp-postgres psql -U postgres -c "CREATE DATABASE myapp_dev;"
 ```
 
 **Option C: Using psql directly**
 ```bash
-PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE mygymtracker;"
+PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE myapp_dev;"
 ```
 
 **Option D: Using pgAdmin**
@@ -65,7 +65,7 @@ PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE mygymtrack
 2. Login with email: `admin@admin.com`, password: `admin`
 3. Add server: host `postgres`, port `5432`, user `postgres`, password `postgres`
 4. Right-click "Databases" → Create → Database
-5. Name: `mygymtracker`
+5. Name: `myapp_dev`
 
 ## Migration Commands
 

@@ -62,9 +62,53 @@ The test suite covers all endpoints from the API plan:
 
 ### Prerequisites
 
-1. Ensure PostgreSQL is running
-2. Database connection is configured in `.env`
-3. Dependencies are installed:
+1. **Ensure PostgreSQL is running**
+
+2. **Create a dedicated test database**
+
+   ```bash
+   # Connect to PostgreSQL
+   psql -U postgres
+
+   # Create test database
+   CREATE DATABASE myapp_e2e;
+
+   # Exit psql
+   \q
+   ```
+
+3. **Create `.env.test` file in the backend directory**
+
+   ⚠️ **IMPORTANT**: E2E tests will **DELETE ALL DATA** from the database! Use a separate test database.
+
+   Create `backend/.env.test`:
+
+   ```bash
+   # Test Environment Configuration
+   # WARNING: All data in this database will be DELETED during tests!
+
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=postgres
+   DB_PASSWORD=postgres
+   DB_NAME=myapp_e2e
+
+   JWT_SECRET=test-jwt-secret-key
+   JWT_EXPIRES_IN=1h
+   REFRESH_TOKEN_SECRET=test-refresh-token-secret-key
+   REFRESH_TOKEN_EXPIRES_IN=7d
+
+   NODE_ENV=test
+   PORT=3000
+   ```
+
+4. **Run database migrations on the test database**
+
+   ```bash
+   DB_NAME=myapp_e2e npm run migration:run
+   ```
+
+5. **Dependencies are installed**
    ```bash
    npm install
    ```
@@ -257,11 +301,32 @@ await request(app.getHttpServer())
 If tests fail with database connection errors:
 
 1. Verify PostgreSQL is running
-2. Check `.env` configuration
-3. Ensure database exists and migrations are run:
+2. Check `.env.test` configuration (not `.env`)
+3. Ensure test database exists:
    ```bash
-   npm run migration:run
+   psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='myapp_e2e'"
    ```
+4. Ensure migrations are run on test database:
+   ```bash
+   DB_NAME=myapp_e2e npm run migration:run
+   ```
+
+### Safety Error: "Refusing to run E2E tests on database"
+
+If you see an error like:
+
+```
+❌ DANGER: Attempting to run E2E tests on database: myapp_dev
+❌ E2E tests will DELETE ALL DATA from the database!
+```
+
+This is a safety mechanism to prevent accidentally running tests on your development or production database.
+
+**Solution:**
+
+1. Create a `.env.test` file with `DB_NAME=myapp_e2e`
+2. Ensure the database name contains "e2e" or is specifically configured for testing
+3. Never run E2E tests against databases named: `myapp_dev`, `myapp`, `myapp_prod`, or `myapp_production`
 
 ### Test Timeouts
 

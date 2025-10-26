@@ -810,7 +810,7 @@ INSERT INTO exercises (name) VALUES
 ON CONFLICT (name) DO NOTHING;
 ```
 
-Run seed: `psql -U postgres -d mygymtracker < seed-exercises.sql`
+Run seed: `psql -U postgres -d myapp_dev < seed-exercises.sql`
 
 ## Summary
 

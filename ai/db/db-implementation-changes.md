@@ -44,7 +44,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
-DB_DATABASE=myapp_dev
+DB_NAME=myapp_dev
 
 # Application
 NODE_ENV=development
@@ -177,7 +177,7 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
     port: configService.get<number>("DB_PORT"),
     username: configService.get("DB_USERNAME"),
     password: configService.get("DB_PASSWORD"),
-    database: configService.get("DB_DATABASE"),
+    database: configService.get("DB_NAME"),
     entities: [__dirname + "/../**/*.entity{.ts,.js}"],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     synchronize: false, // NEVER use in production
@@ -221,7 +221,7 @@ export const AppDataSource = new DataSource({
   port: parseInt(process.env.DB_PORT || "5432"),
   username: process.env.DB_USERNAME || "postgres",
   password: process.env.DB_PASSWORD || "postgres",
-  database: process.env.DB_DATABASE || "myapp_dev",
+  database: process.env.DB_NAME || "myapp_dev",
   entities: [__dirname + "/entities/*.entity{.ts,.js}"],
   migrations: [__dirname + "/migrations/*{.ts,.js}"],
   synchronize: false,
