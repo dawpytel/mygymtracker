@@ -1,0 +1,285 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./backend
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        working-directory: ./backend
+        run: npm run test:cov
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: backend/coverage/
+          retention-days: 7
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: Integration
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: myapp_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: ./backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: myapp_dev
+          DB_DATABASE: myapp_dev
+          NODE_ENV: test
+        run: npm run migration:run
+
+      - name: Run E2E tests with coverage
+        working-directory: ./backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: myapp_dev
+          DB_DATABASE: myapp_dev
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: 1d
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          REFRESH_TOKEN_EXPIRES_IN: 7d
+          NODE_ENV: development
+          PORT: 3000
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: npm run test:e2e -- --coverage --coverageDirectory=../coverage-e2e
+
+      - name: Upload E2E test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-coverage
+          path: backend/coverage-e2e/
+          retention-days: 7
+
+  status-comment:
+    name: Post PR Status Comment
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, e2e-tests]
+    if: always()
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download unit test coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: ./coverage-unit
+        continue-on-error: true
+
+      - name: Download E2E test coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-test-coverage
+          path: ./coverage-e2e
+        continue-on-error: true
+
+      - name: Parse coverage data
+        id: coverage
+        run: |
+          # Parse unit test coverage
+          if [ -f "./coverage-unit/coverage-summary.json" ]; then
+            UNIT_COVERAGE=$(node -e "
+              const fs = require('fs');
+              try {
+                const data = JSON.parse(fs.readFileSync('./coverage-unit/coverage-summary.json', 'utf8'));
+                const total = data.total;
+                console.log(\`Lines: \${total.lines.pct}% | Statements: \${total.statements.pct}% | Functions: \${total.functions.pct}% | Branches: \${total.branches.pct}%\`);
+              } catch(e) {
+                console.log('N/A');
+              }
+            ")
+          else
+            UNIT_COVERAGE="N/A"
+          fi
+
+          # Parse E2E test coverage
+          if [ -f "./coverage-e2e/coverage-summary.json" ]; then
+            E2E_COVERAGE=$(node -e "
+              const fs = require('fs');
+              try {
+                const data = JSON.parse(fs.readFileSync('./coverage-e2e/coverage-summary.json', 'utf8'));
+                const total = data.total;
+                console.log(\`Lines: \${total.lines.pct}% | Statements: \${total.statements.pct}% | Functions: \${total.functions.pct}% | Branches: \${total.branches.pct}%\`);
+              } catch(e) {
+                console.log('N/A');
+              }
+            ")
+          else
+            E2E_COVERAGE="N/A"
+          fi
+
+          echo "unit_coverage=$UNIT_COVERAGE" >> $GITHUB_OUTPUT
+          echo "e2e_coverage=$E2E_COVERAGE" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Create status comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('## 🔍 Pull Request CI Status')
+            );
+
+            const lintStatus = '${{ needs.lint.result }}';
+            const unitTestsStatus = '${{ needs.unit-tests.result }}';
+            const e2eTestsStatus = '${{ needs.e2e-tests.result }}';
+
+            const statusEmoji = (status) => {
+              if (status === 'success') return '✅';
+              if (status === 'failure') return '❌';
+              if (status === 'skipped') return '⏭️';
+              return '⚠️';
+            };
+
+            const overallStatus = 
+              lintStatus === 'success' && 
+              unitTestsStatus === 'success' && 
+              e2eTestsStatus === 'success' 
+                ? '✅ All checks passed!' 
+                : '❌ Some checks failed';
+
+            const unitCoverage = '${{ steps.coverage.outputs.unit_coverage }}';
+            const e2eCoverage = '${{ steps.coverage.outputs.e2e_coverage }}';
+
+            const commentBody = `## 🔍 Pull Request CI Status
+
+            ### ${overallStatus}
+
+            | Check | Status | Result |
+            |-------|--------|--------|
+            | Lint | ${statusEmoji(lintStatus)} | \`${lintStatus}\` |
+            | Unit Tests | ${statusEmoji(unitTestsStatus)} | \`${unitTestsStatus}\` |
+            | E2E Tests | ${statusEmoji(e2eTestsStatus)} | \`${e2eTestsStatus}\` |
+
+            ### 📊 Test Coverage
+
+            **Unit Tests:**
+            \`\`\`
+            ${unitCoverage}
+            \`\`\`
+
+            **E2E Tests:**
+            \`\`\`
+            ${e2eCoverage}
+            \`\`\`
+
+            ---
+            *Last updated: ${new Date().toUTCString()}*
+            *Commit: ${context.sha.substring(0, 7)}*
+            `;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }

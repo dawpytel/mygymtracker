@@ -165,6 +165,51 @@ my-fullstack-app/
 - Axios
 - React Router
 
+**CI/CD:**
+
+- GitHub Actions
+- Automated testing on push/PR
+- Environment-based secrets management
+- Docker build automation
+
+## CI/CD Documentation
+
+Complete CI/CD documentation is available in the `ai/ci-cd/` directory:
+
+- **[Quick Start](ai/ci-cd/QUICK-START.md)** - Get CI/CD running in 15 minutes
+- **[Beginners Guide](ai/ci-cd/beginners-guide.md)** - Complete introduction to GitHub Actions
+- **[Strategy Overview](ai/ci-cd/github-actions-strategy.md)** - Full CI/CD strategy
+- **[Secrets Checklist](ai/ci-cd/secrets-checklist.md)** - Step-by-step secrets setup
+- **[Practical Examples](ai/ci-cd/practical-examples.md)** - 11 ready-to-use workflow examples
+- **[Commands Cheatsheet](ai/ci-cd/commands-cheatsheet.md)** - All useful commands
+- **[Local vs CI](ai/ci-cd/local-vs-ci-environments.md)** - Understanding the differences
+
+### Getting Started with CI/CD
+
+```bash
+# 1. Read the quick start guide
+cat ai/ci-cd/QUICK-START.md
+
+# 2. Generate secrets
+openssl rand -base64 32  # For JWT_SECRET
+openssl rand -base64 32  # For REFRESH_TOKEN_SECRET
+
+# 3. Setup Environment in GitHub
+# Go to: Settings → Environments → Create "Integration"
+# Add required secrets (see secrets-checklist.md)
+
+# 4. Copy workflow to repo
+cp ai/ci-cd/example-ci-workflow.yml .github/workflows/ci.yml
+
+# 5. Commit and push
+git add .github/workflows/ci.yml
+git commit -m "ci: add GitHub Actions workflow"
+git push
+
+# 6. Watch it run!
+# Go to: GitHub → Actions tab
+```
+
 ## Git Workflow
 
 ### Common Git Commands
