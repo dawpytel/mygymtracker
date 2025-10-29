@@ -9,8 +9,7 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    region: oregon # Change to your preferred region
-    plan: starter # Options: free, starter, standard, pro
+    plan: free # Options: free, starter, standard, pro
     branch: main
     healthCheckPath: /api/health
     autoDeploy: true # Enable automatic deployment on git push
