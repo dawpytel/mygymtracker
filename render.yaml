@@ -79,7 +79,6 @@ services:
     staticPublishPath: ./frontend/dist
     pullRequestPreviewsEnabled: true # Enable preview deployments for PRs
     branch: main
-    region: oregon # Change to your preferred region
     buildFilter:
       paths:
         - frontend/**
