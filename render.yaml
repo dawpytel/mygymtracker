@@ -118,8 +118,7 @@ databases:
   - name: mygymtracker-db
     databaseName: mygymtracker
     user: mygymtracker_user
-    region: oregon # Should match your services region
-    plan: starter # Options: free (90-day trial), starter, standard, pro
+    plan: free # Options: free (90-day trial), starter, standard, pro
     postgresMajorVersion: 15
     # Automatic backups (available on paid plans)
     # Free tier: No backups
