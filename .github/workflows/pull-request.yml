@@ -110,7 +110,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
-          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE myapp_db;"
+          psql -h localhost -U postgres -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'myapp_db'" | grep -q 1 || psql -h localhost -U postgres -d postgres -c "CREATE DATABASE myapp_db;"
 
       - name: Run database migrations on E2E database
         working-directory: ./backend
