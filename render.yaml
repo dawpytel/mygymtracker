@@ -1,0 +1,131 @@
+# Render Blueprint for MyGymTracker
+# This file defines all infrastructure as code for easy deployment
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API Service
+  - type: web
+    name: mygymtracker-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon # Change to your preferred region
+    plan: starter # Options: free, starter, standard, pro
+    branch: main
+    healthCheckPath: /api/health
+    autoDeploy: true # Enable automatic deployment on git push
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    envVars:
+      # Node Environment
+      - key: NODE_ENV
+        value: production
+
+      # Database Configuration (Auto-populated from database service)
+      - key: DB_HOST
+        fromDatabase:
+          name: mygymtracker-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: mygymtracker-db
+          property: port
+      - key: DB_USERNAME
+        fromDatabase:
+          name: mygymtracker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mygymtracker-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: mygymtracker-db
+          property: database
+
+      # JWT Configuration
+      - key: JWT_SECRET
+        generateValue: true # Render will auto-generate a secure secret
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+      # Application URLs
+      - key: FRONTEND_URL
+        value: https://mygymtracker-web.onrender.com
+      - key: PORT
+        value: 3000
+
+      # Optional: Add OAuth credentials manually after deployment
+      # Uncomment and set these in Render Dashboard after deployment
+      # - key: GOOGLE_CLIENT_ID
+      #   sync: false
+      # - key: GOOGLE_CLIENT_SECRET
+      #   sync: false
+      # - key: APPLE_CLIENT_ID
+      #   sync: false
+      # - key: APPLE_TEAM_ID
+      #   sync: false
+      # - key: APPLE_KEY_ID
+      #   sync: false
+      # - key: APPLE_PRIVATE_KEY
+      #   sync: false
+
+  # Frontend Static Site
+  - type: web
+    name: mygymtracker-web
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    pullRequestPreviewsEnabled: true # Enable preview deployments for PRs
+    branch: main
+    region: oregon # Change to your preferred region
+    buildFilter:
+      paths:
+        - frontend/**
+        - render.yaml
+    # SPA routing configuration
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    envVars:
+      # API URL for frontend
+      - key: VITE_API_URL
+        value: https://mygymtracker-api.onrender.com
+
+      # Optional: Add OAuth client IDs manually after deployment
+      # These are public, so can be set here
+      # - key: VITE_GOOGLE_CLIENT_ID
+      #   sync: false
+      # - key: VITE_APPLE_CLIENT_ID
+      #   sync: false
+
+databases:
+  # PostgreSQL Database
+  - name: mygymtracker-db
+    databaseName: mygymtracker
+    user: mygymtracker_user
+    region: oregon # Should match your services region
+    plan: starter # Options: free (90-day trial), starter, standard, pro
+    postgresMajorVersion: 15
+    # Automatic backups (available on paid plans)
+    # Free tier: No backups
+    # Starter+: Daily automatic backups with 7-day retention
+
+# Blueprint version
+version: 1
