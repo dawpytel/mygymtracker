@@ -46,4 +46,3 @@ export class ExerciseSet {
   @JoinColumn({ name: 'session_exercise_id' })
   session_exercise: SessionExercise;
 }
-

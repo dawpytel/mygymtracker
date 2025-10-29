@@ -28,7 +28,6 @@ import {
   SessionExerciseDto,
   ExerciseSetDto,
   IntensityTechnique,
-  SetType,
   UpdateSessionExerciseDto,
   CreateExerciseSetDto,
   UpdateExerciseSetDto,
@@ -90,9 +89,10 @@ export class SessionsService {
 
       return { items, total };
     } catch (error) {
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to list sessions for user ${userId}:`,
-        error.stack,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to retrieve sessions');
     }
@@ -161,9 +161,10 @@ export class SessionsService {
       ) {
         throw error;
       }
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to create session for user ${userId}:`,
-        error.stack,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to create session');
     }
@@ -265,10 +266,8 @@ export class SessionsService {
       ) {
         throw error;
       }
-      this.logger.error(
-        `Failed to retrieve session ${sessionId}:`,
-        error.stack,
-      );
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to retrieve session ${sessionId}:`, errorStack);
       throw new InternalServerErrorException('Failed to retrieve session');
     }
   }
@@ -298,11 +297,22 @@ export class SessionsService {
         .select(['session.completed_at', 'es.reps', 'es.load', 'es.set_type'])
         .getRawMany();
 
+      // Define the structure of raw query results
+      interface RawSessionData {
+        session_completed_at: string | Date;
+        es_set_type: string;
+        es_load: number;
+        es_reps: number;
+      }
+
       // Group by session and get the best working set from each
       const historyMap = new Map<string, ExerciseHistoryEntry>();
 
-      completedSessions.forEach((row) => {
-        const date = row.session_completed_at;
+      (completedSessions as RawSessionData[]).forEach((row) => {
+        const date =
+          typeof row.session_completed_at === 'string'
+            ? row.session_completed_at
+            : row.session_completed_at.toISOString();
         // Only consider working sets for history
         if (row.es_set_type === 'working') {
           const existing = historyMap.get(date);
@@ -322,9 +332,10 @@ export class SessionsService {
 
       return Array.from(historyMap.values()).slice(0, limit);
     } catch (error) {
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to fetch exercise history for exercise ${exerciseId}:`,
-        error.stack,
+        errorStack,
       );
       // Return empty history on error rather than failing the whole request
       return [];
@@ -410,7 +421,8 @@ export class SessionsService {
       ) {
         throw error;
       }
-      this.logger.error(`Failed to update session ${sessionId}:`, error.stack);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update session ${sessionId}:`, errorStack);
       throw new InternalServerErrorException('Failed to update session');
     }
   }
@@ -457,7 +469,8 @@ export class SessionsService {
       ) {
         throw error;
       }
-      this.logger.error(`Failed to cancel session ${sessionId}:`, error.stack);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to cancel session ${sessionId}:`, errorStack);
       throw new InternalServerErrorException('Failed to cancel session');
     }
   }
@@ -541,9 +554,10 @@ export class SessionsService {
       ) {
         throw error;
       }
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to update exercise ${exerciseId} in session ${sessionId}:`,
-        error.stack,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to update exercise');
     }
@@ -621,9 +635,10 @@ export class SessionsService {
       ) {
         throw error;
       }
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to create set for exercise ${exerciseId} in session ${sessionId}:`,
-        error.stack,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to create set');
     }
@@ -718,9 +733,10 @@ export class SessionsService {
       ) {
         throw error;
       }
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to update set ${setId} in exercise ${exerciseId}:`,
-        error.stack,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to update set');
     }
@@ -760,10 +776,8 @@ export class SessionsService {
       return suggestions;
     } catch (error) {
       // Fallback: return empty array on error rather than failing the whole request
-      this.logger.error(
-        'Failed to calculate warmup suggestions:',
-        error.stack,
-      );
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Failed to calculate warmup suggestions:', errorStack);
       return [];
     }
   }

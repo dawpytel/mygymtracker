@@ -5,6 +5,22 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
+
+/**
+ * User information injected into request
+ */
+interface DevUser {
+  id: string;
+  email: string;
+}
+
+/**
+ * Request with user property
+ */
+interface RequestWithUser extends Request {
+  user: DevUser;
+}
 
 /**
  * Development Authentication Guard
@@ -35,7 +51,7 @@ export class DevAuthGuard implements CanActivate {
       );
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
 
     // Inject the default development user
     request.user = {

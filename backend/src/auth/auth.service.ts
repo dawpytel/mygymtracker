@@ -88,16 +88,21 @@ export class AuthService {
       }
 
       // Handle unique constraint violation from database
-      if (error.code === '23505') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
         // PostgreSQL unique violation
         throw new ConflictException('Email already exists');
       }
 
       // Log unexpected errors
-      this.logger.error(
-        `Failed to register user: ${error.message}`,
-        error.stack,
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to register user: ${errorMessage}`, errorStack);
       throw new InternalServerErrorException('Failed to register user');
     }
   }
@@ -157,7 +162,10 @@ export class AuthService {
       }
 
       // Log unexpected errors
-      this.logger.error(`Failed to login user: ${error.message}`, error.stack);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to login user: ${errorMessage}`, errorStack);
       throw new InternalServerErrorException('Failed to login');
     }
   }
@@ -226,10 +234,9 @@ export class AuthService {
   /**
    * Logout user (placeholder for token blacklisting)
    * @param userId - User ID
-   * @param token - JWT token to invalidate
    * @returns LogoutResponseDto with success message
    */
-  async logout(userId: string, token: string): Promise<LogoutResponseDto> {
+  logout(userId: string): LogoutResponseDto {
     // TODO: Implement token blacklisting with Redis or in-memory store
     // For now, just return success message
     // The client should discard the token on their end

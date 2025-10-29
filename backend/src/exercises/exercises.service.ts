@@ -8,11 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Exercise } from './entities/exercise.entity';
-import {
-  ExerciseQueryDto,
-  ExerciseListDto,
-  ExerciseDto,
-} from '../types';
+import { ExerciseQueryDto, ExerciseListDto, ExerciseDto } from '../types';
 
 /**
  * Service for managing exercises
@@ -56,12 +52,13 @@ export class ExercisesService {
       });
 
       return {
-        items: items.map(this.toDto),
+        items: items.map((item) => this.toDto(item)),
         total,
       };
     } catch (error) {
       // Log error with context
-      this.logger.error('Failed to fetch exercises', error.stack);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Failed to fetch exercises', errorStack);
       throw new InternalServerErrorException('Failed to retrieve exercises');
     }
   }
@@ -98,7 +95,8 @@ export class ExercisesService {
       }
 
       // Log and wrap unexpected errors
-      this.logger.error(`Failed to fetch exercise ${id}`, error.stack);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to fetch exercise ${id}`, errorStack);
       throw new InternalServerErrorException('Failed to retrieve exercise');
     }
   }
@@ -115,4 +113,3 @@ export class ExercisesService {
     };
   }
 }
-

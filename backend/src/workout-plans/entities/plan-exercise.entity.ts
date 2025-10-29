@@ -57,4 +57,3 @@ export class PlanExercise {
   @JoinColumn({ name: 'plan_id' })
   workout_plan: WorkoutPlan;
 }
-

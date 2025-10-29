@@ -6,9 +6,25 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { Request } from 'express';
+
+/**
+ * User information attached to request
+ */
+interface RequestUser {
+  id: string;
+  email: string;
+}
+
+/**
+ * Request with user and RLS tracking
+ */
+interface RequestWithUser extends Request {
+  user?: RequestUser;
+  [key: symbol]: unknown;
+}
 
 /**
  * RLS Interceptor
@@ -34,8 +50,8 @@ export class RlsInterceptor implements NestInterceptor {
     private dataSource: DataSource,
   ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
     // If user is not authenticated, proceed without setting RLS context

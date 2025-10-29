@@ -15,4 +15,3 @@ import { Exercise } from './entities/exercise.entity';
   exports: [ExercisesService], // Export for use in other modules (e.g., workout plans)
 })
 export class ExercisesModule {}
-

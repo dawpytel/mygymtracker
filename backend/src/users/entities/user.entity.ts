@@ -33,4 +33,3 @@ export class User {
   @Column({ type: 'timestamptz', default: () => 'now()' })
   account_created_at: Date;
 }
-

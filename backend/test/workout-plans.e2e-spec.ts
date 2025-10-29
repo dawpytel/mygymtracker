@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -20,11 +23,11 @@ import {
   invalidWorkoutPlan_NameTooLong,
   invalidWorkoutPlan_EmptyName,
 } from './mock-data';
+import { WorkoutPlanResponse } from './test-types';
 
 describe('Workout Plans (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let userId: string;
   let exerciseIds: {
     benchPressId: string;
     squatId: string;
@@ -50,7 +53,6 @@ describe('Workout Plans (e2e)', () => {
       testUsers.user1.password,
     );
     accessToken = user.accessToken;
-    userId = user.userId;
 
     // Create test exercises
     exerciseIds = await createTestExercises(app);
@@ -59,7 +61,7 @@ describe('Workout Plans (e2e)', () => {
   describe('POST /plans', () => {
     it('should create a new workout plan with exercises', async () => {
       const planData = createValidWorkoutPlan(exerciseIds);
-      
+
       console.log('Exercise IDs:', exerciseIds);
       console.log('Plan data:', JSON.stringify(planData, null, 2));
 
@@ -67,25 +69,27 @@ describe('Workout Plans (e2e)', () => {
         .post('/plans')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(planData);
-      
+
       if (response.status !== 201) {
         console.log('Response status:', response.status);
         console.log('Response body:', JSON.stringify(response.body, null, 2));
       }
-      
+
       expect(response.status).toBe(201);
 
+      const body = response.body as WorkoutPlanResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('plan_name');
-      expect(response.body).toHaveProperty('exercises');
-      expect(isValidUUID(response.body.id)).toBe(true);
-      expect(response.body.plan_name).toBe(planData.plan_name);
-      expect(Array.isArray(response.body.exercises)).toBe(true);
-      expect(response.body.exercises.length).toBe(2);
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('plan_name');
+      expect(body).toHaveProperty('exercises');
+      expect(isValidUUID(body.id)).toBe(true);
+      expect(body.plan_name).toBe(planData.plan_name);
+      expect(Array.isArray(body.exercises)).toBe(true);
+      expect(body.exercises.length).toBe(2);
 
       // Validate exercise structure
-      const exercise = response.body.exercises[0];
+      const exercise = body.exercises[0];
       expect(exercise).toHaveProperty('id');
       expect(exercise).toHaveProperty('exercise_id');
       expect(exercise).toHaveProperty('exercise_name');
@@ -582,9 +586,7 @@ describe('Workout Plans (e2e)', () => {
     });
 
     it('should reject request without authorization token', async () => {
-      await request(app.getHttpServer())
-        .delete(`/plans/${planId}`)
-        .expect(401);
+      await request(app.getHttpServer()).delete(`/plans/${planId}`).expect(401);
     });
 
     it('should return 404 for non-existent plan', async () => {
@@ -631,4 +633,3 @@ describe('Workout Plans (e2e)', () => {
     });
   });
 });
-

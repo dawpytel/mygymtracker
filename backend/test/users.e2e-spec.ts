@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -8,6 +9,7 @@ import {
   isValidISODate,
 } from './test-utils';
 import { testUsers } from './mock-data';
+import { UserResponse, LoginResponse } from './test-types';
 
 describe('Users (e2e)', () => {
   let app: INestApplication;
@@ -38,17 +40,19 @@ describe('Users (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const body = response.body as UserResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('email');
-      expect(response.body).toHaveProperty('created_at');
-      expect(response.body).toHaveProperty('last_login_at');
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('email');
+      expect(body).toHaveProperty('created_at');
+      expect(body).toHaveProperty('last_login_at');
 
       // Validate data
-      expect(response.body.id).toBe(userId);
-      expect(response.body.email).toBe(email);
-      expect(isValidUUID(response.body.id)).toBe(true);
-      expect(isValidISODate(response.body.created_at)).toBe(true);
+      expect(body.id).toBe(userId);
+      expect(body.email).toBe(email);
+      expect(isValidUUID(body.id)).toBe(true);
+      expect(isValidISODate(body.created_at)).toBe(true);
 
       // Should not return sensitive fields
       expect(response.body).not.toHaveProperty('password');
@@ -97,10 +101,13 @@ describe('Users (e2e)', () => {
         .set('Authorization', `Bearer ${user2.accessToken}`)
         .expect(200);
 
+      const body1 = response1.body as UserResponse;
+      const body2 = response2.body as UserResponse;
+
       // Verify different users
-      expect(response1.body.id).not.toBe(response2.body.id);
-      expect(response1.body.email).toBe(testUsers.user1.email);
-      expect(response2.body.email).toBe(testUsers.user2.email);
+      expect(body1.id).not.toBe(body2.id);
+      expect(body1.email).toBe(testUsers.user1.email);
+      expect(body2.email).toBe(testUsers.user2.email);
     });
 
     it('should update last_login_at on each login', async () => {
@@ -122,13 +129,16 @@ describe('Users (e2e)', () => {
         })
         .expect(200);
 
+      const login1Body = login1.body as LoginResponse;
+
       // Get profile after first login
       const profile1 = await request(app.getHttpServer())
         .get('/users/me')
-        .set('Authorization', `Bearer ${login1.body.accessToken}`)
+        .set('Authorization', `Bearer ${login1Body.accessToken}`)
         .expect(200);
 
-      expect(profile1.body.last_login_at).toBeDefined();
+      const profile1Body = profile1.body as UserResponse;
+      expect(profile1Body.last_login_at).toBeDefined();
 
       // Wait a bit to ensure timestamp difference
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -142,15 +152,19 @@ describe('Users (e2e)', () => {
         })
         .expect(200);
 
+      const login2Body = login2.body as LoginResponse;
+
       // Get profile after second login
       const profile2 = await request(app.getHttpServer())
         .get('/users/me')
-        .set('Authorization', `Bearer ${login2.body.accessToken}`)
+        .set('Authorization', `Bearer ${login2Body.accessToken}`)
         .expect(200);
 
+      const profile2Body = profile2.body as UserResponse;
+
       // last_login_at should be updated
-      const lastLogin1 = new Date(profile1.body.last_login_at);
-      const lastLogin2 = new Date(profile2.body.last_login_at);
+      const lastLogin1 = new Date(profile1Body.last_login_at ?? '');
+      const lastLogin2 = new Date(profile2Body.last_login_at ?? '');
       expect(lastLogin2.getTime()).toBeGreaterThanOrEqual(lastLogin1.getTime());
     });
   });
@@ -185,4 +199,3 @@ describe('Users (e2e)', () => {
     });
   });
 });
-

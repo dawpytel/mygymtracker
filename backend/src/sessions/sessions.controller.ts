@@ -7,7 +7,7 @@ import {
   Body,
   Param,
   Query,
-  Request,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -34,6 +34,7 @@ import {
   ExerciseSetDto,
   SessionExerciseDto,
 } from '../types';
+import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * SessionsController - handles HTTP requests for workout sessions
@@ -62,7 +63,7 @@ export class SessionsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async list(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Query() query: SessionQueryDto,
   ): Promise<WorkoutSessionListDto> {
     const userId = req.user.id;
@@ -84,7 +85,7 @@ export class SessionsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Workout plan not found' })
   async create(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: CreateWorkoutSessionDto,
   ): Promise<CreateWorkoutSessionResponseDto> {
     const userId = req.user.id;
@@ -108,7 +109,7 @@ export class SessionsController {
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
   @ApiResponse({ status: 404, description: 'Session not found' })
   async findOne(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
   ): Promise<WorkoutSessionDetailDto> {
     const userId = req.user.id;
@@ -130,7 +131,7 @@ export class SessionsController {
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
   @ApiResponse({ status: 404, description: 'Session not found' })
   async update(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() dto: UpdateWorkoutSessionDto,
   ): Promise<WorkoutSessionDto> {
@@ -149,7 +150,10 @@ export class SessionsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
   @ApiResponse({ status: 404, description: 'Session not found' })
-  async remove(@Request() req, @Param('id') id: string): Promise<void> {
+  async remove(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<void> {
     const userId = req.user.id;
     return this.sessionsService.remove(userId, id);
   }
@@ -169,7 +173,7 @@ export class SessionsController {
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
   @ApiResponse({ status: 404, description: 'Session or exercise not found' })
   async updateExercise(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('sessionId') sessionId: string,
     @Param('exerciseId') exerciseId: string,
     @Body() dto: UpdateSessionExerciseDto,
@@ -199,7 +203,7 @@ export class SessionsController {
   @ApiResponse({ status: 403, description: 'Forbidden - not your session' })
   @ApiResponse({ status: 404, description: 'Session or exercise not found' })
   async createSet(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('sessionId') sessionId: string,
     @Param('exerciseId') exerciseId: string,
     @Body() dto: CreateExerciseSetDto,
@@ -226,7 +230,7 @@ export class SessionsController {
     description: 'Session, exercise, or set not found',
   })
   async updateSet(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('sessionId') sessionId: string,
     @Param('exerciseId') exerciseId: string,
     @Param('setId') setId: string,

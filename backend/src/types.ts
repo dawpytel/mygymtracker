@@ -5,7 +5,6 @@ import {
   Min,
   Max,
   IsString,
-  IsUUID,
   IsEnum,
   IsNotEmpty,
   IsArray,
@@ -1475,7 +1474,8 @@ export class SessionExerciseDetailDto {
   history: ExerciseHistoryEntry[];
 
   @ApiProperty({
-    description: 'Intelligent warmup set recommendations based on historical data',
+    description:
+      'Intelligent warmup set recommendations based on historical data',
     type: 'array',
     items: {
       type: 'object',

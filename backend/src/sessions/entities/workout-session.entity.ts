@@ -55,4 +55,3 @@ export class WorkoutSession {
   @JoinColumn({ name: 'plan_id' })
   plan: WorkoutPlan | null;
 }
-

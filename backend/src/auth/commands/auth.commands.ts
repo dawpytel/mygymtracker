@@ -41,4 +41,3 @@ export interface LogoutCommand {
 export interface GetUserProfileCommand {
   userId: string;
 }
-

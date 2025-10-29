@@ -10,14 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { WorkoutPlan } from './entities/workout-plan.entity';
 import { PlanExercise } from './entities/plan-exercise.entity';
-import { Exercise } from '../exercises/entities/exercise.entity';
 import {
   WorkoutPlanListDto,
   WorkoutPlanQueryDto,
   CreateWorkoutPlanDto,
   WorkoutPlanDto,
   UpdateWorkoutPlanDto,
-  UpdatePlanExerciseDto,
   PlanExerciseDto,
 } from '../types';
 
@@ -77,7 +75,7 @@ export class WorkoutPlansService {
       // Log error with context for debugging
       this.logger.error(
         `Failed to fetch workout plans for user ${userId}`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException('Failed to fetch workout plans');
     }
@@ -190,7 +188,7 @@ export class WorkoutPlansService {
       return {
         id: savedPlan.id,
         plan_name: savedPlan.plan_name,
-        exercises: rawExercises,
+        exercises: rawExercises as PlanExerciseDto[],
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -206,7 +204,7 @@ export class WorkoutPlansService {
       // Log and wrap unexpected errors
       this.logger.error(
         `Failed to create workout plan for user ${userId}`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException('Failed to create workout plan');
     } finally {
@@ -287,7 +285,7 @@ export class WorkoutPlansService {
       return {
         id: plan.id,
         plan_name: plan.plan_name,
-        exercises: rawExercises,
+        exercises: rawExercises as PlanExerciseDto[],
       };
     } catch (error) {
       // Re-throw known exceptions
@@ -302,7 +300,7 @@ export class WorkoutPlansService {
       // Log and wrap unexpected errors
       this.logger.error(
         `Failed to fetch workout plan ${planId} for user ${userId}`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException('Failed to fetch workout plan');
     }
@@ -448,7 +446,7 @@ export class WorkoutPlansService {
       return {
         id: plan.id,
         plan_name: plan.plan_name,
-        exercises: rawExercises,
+        exercises: rawExercises as PlanExerciseDto[],
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -466,7 +464,7 @@ export class WorkoutPlansService {
       // Log and wrap unexpected errors
       this.logger.error(
         `Failed to update workout plan ${planId} for user ${userId}`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException('Failed to update workout plan');
     } finally {
@@ -539,7 +537,7 @@ export class WorkoutPlansService {
       // Log and wrap unexpected errors
       this.logger.error(
         `Failed to delete workout plan ${planId} for user ${userId}`,
-        error.stack,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException('Failed to delete workout plan');
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -19,11 +20,15 @@ import {
   invalidExerciseSet_Load,
 } from './mock-data';
 import { SetType } from '../src/types';
+import {
+  ExerciseSetResponse,
+  WorkoutSessionResponse,
+  SessionExerciseResponse,
+} from './test-types';
 
 describe('Exercise Sets (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let userId: string;
   let sessionId: string;
   let sessionExerciseId: string;
   let exerciseIds: {
@@ -51,7 +56,6 @@ describe('Exercise Sets (e2e)', () => {
       testUsers.user1.password,
     );
     accessToken = user.accessToken;
-    userId = user.userId;
 
     // Create test exercises and workout plan
     exerciseIds = await createTestExercises(app);
@@ -71,7 +75,8 @@ describe('Exercise Sets (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    sessionExerciseId = sessionDetails.body.exercises[0].id;
+    const sessionBody = sessionDetails.body as WorkoutSessionResponse;
+    sessionExerciseId = sessionBody.exercises[0].id;
   });
 
   describe('POST /sessions/:sessionId/exercises/:exerciseId/sets', () => {
@@ -82,21 +87,23 @@ describe('Exercise Sets (e2e)', () => {
         .send(validExerciseSet)
         .expect(201);
 
+      const body = response.body as ExerciseSetResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('set_type');
-      expect(response.body).toHaveProperty('set_index');
-      expect(response.body).toHaveProperty('reps');
-      expect(response.body).toHaveProperty('load');
-      expect(response.body).toHaveProperty('created_at');
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('set_type');
+      expect(body).toHaveProperty('set_index');
+      expect(body).toHaveProperty('reps');
+      expect(body).toHaveProperty('load');
+      expect(body).toHaveProperty('created_at');
 
       // Validate data types and values
-      expect(isValidUUID(response.body.id)).toBe(true);
-      expect(response.body.set_type).toBe(SetType.WORKING);
-      expect(response.body.set_index).toBe(validExerciseSet.set_index);
-      expect(response.body.reps).toBe(validExerciseSet.reps);
-      expect(response.body.load).toBe(validExerciseSet.load);
-      expect(isValidISODate(response.body.created_at)).toBe(true);
+      expect(isValidUUID(body.id)).toBe(true);
+      expect(body.set_type).toBe(SetType.WORKING);
+      expect(body.set_index).toBe(validExerciseSet.set_index);
+      expect(body.reps).toBe(validExerciseSet.reps);
+      expect(body.load).toBe(validExerciseSet.load);
+      expect(isValidISODate(body.created_at)).toBe(true);
     });
 
     it('should create a warmup set', async () => {
@@ -106,9 +113,10 @@ describe('Exercise Sets (e2e)', () => {
         .send(validWarmupSet)
         .expect(201);
 
-      expect(response.body.set_type).toBe(SetType.WARMUP);
-      expect(response.body.reps).toBe(validWarmupSet.reps);
-      expect(response.body.load).toBe(validWarmupSet.load);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.set_type).toBe(SetType.WARMUP);
+      expect(body.reps).toBe(validWarmupSet.reps);
+      expect(body.load).toBe(validWarmupSet.load);
     });
 
     it('should create a set with zero load (bodyweight)', async () => {
@@ -125,7 +133,8 @@ describe('Exercise Sets (e2e)', () => {
         .send(bodyweightSet)
         .expect(201);
 
-      expect(response.body.load).toBe(0);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.load).toBe(0);
     });
 
     it('should create a set with decimal load', async () => {
@@ -142,7 +151,8 @@ describe('Exercise Sets (e2e)', () => {
         .send(decimalLoadSet)
         .expect(201);
 
-      expect(response.body.load).toBe(82.5);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.load).toBe(82.5);
     });
 
     it('should reject request without authorization token', async () => {
@@ -247,9 +257,13 @@ describe('Exercise Sets (e2e)', () => {
         .send({ ...validExerciseSet, set_index: 3 })
         .expect(201);
 
+      const set1Body = set1.body as ExerciseSetResponse;
+      const set2Body = set2.body as ExerciseSetResponse;
+      const set3Body = set3.body as ExerciseSetResponse;
+
       // Verify all sets are different
-      expect(set1.body.id).not.toBe(set2.body.id);
-      expect(set2.body.id).not.toBe(set3.body.id);
+      expect(set1Body.id).not.toBe(set2Body.id);
+      expect(set2Body.id).not.toBe(set3Body.id);
 
       // Verify all sets exist in session
       const sessionDetails = await request(app.getHttpServer())
@@ -257,10 +271,13 @@ describe('Exercise Sets (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const exercise = sessionDetails.body.exercises.find(
-        (e: any) => e.id === sessionExerciseId,
+      const sessionBody = sessionDetails.body as WorkoutSessionResponse;
+      const exercise = sessionBody.exercises.find(
+        (e: SessionExerciseResponse) => e.id === sessionExerciseId,
       );
-      expect(exercise.sets.length).toBe(3);
+      if (exercise) {
+        expect(exercise.sets.length).toBe(3);
+      }
     });
 
     it('should return 404 for non-existent session', async () => {
@@ -311,7 +328,8 @@ describe('Exercise Sets (e2e)', () => {
         .send(validExerciseSet)
         .expect(201);
 
-      setId = setResponse.body.id;
+      const setBody = setResponse.body as ExerciseSetResponse;
+      setId = setBody.id;
     });
 
     it('should update set reps', async () => {
@@ -323,11 +341,12 @@ describe('Exercise Sets (e2e)', () => {
         .send({ reps: 12 })
         .expect(200);
 
-      expect(response.body.id).toBe(setId);
-      expect(response.body.reps).toBe(12);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.id).toBe(setId);
+      expect(body.reps).toBe(12);
       // Other fields should remain unchanged
-      expect(parseFloat(response.body.load)).toBe(validExerciseSet.load);
-      expect(response.body.set_type).toBe(validExerciseSet.set_type);
+      expect(parseFloat(String(body.load))).toBe(validExerciseSet.load);
+      expect(body.set_type).toBe(validExerciseSet.set_type);
     });
 
     it('should update set load', async () => {
@@ -339,10 +358,11 @@ describe('Exercise Sets (e2e)', () => {
         .send({ load: 90.0 })
         .expect(200);
 
-      expect(response.body.id).toBe(setId);
-      expect(response.body.load).toBe(90.0);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.id).toBe(setId);
+      expect(body.load).toBe(90.0);
       // Other fields should remain unchanged
-      expect(response.body.reps).toBe(validExerciseSet.reps);
+      expect(body.reps).toBe(validExerciseSet.reps);
     });
 
     it('should update set type', async () => {
@@ -354,8 +374,9 @@ describe('Exercise Sets (e2e)', () => {
         .send({ set_type: SetType.WARMUP })
         .expect(200);
 
-      expect(response.body.id).toBe(setId);
-      expect(response.body.set_type).toBe(SetType.WARMUP);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.id).toBe(setId);
+      expect(body.set_type).toBe(SetType.WARMUP);
     });
 
     it('should update multiple fields at once', async () => {
@@ -371,9 +392,10 @@ describe('Exercise Sets (e2e)', () => {
         })
         .expect(200);
 
-      expect(response.body.reps).toBe(15);
-      expect(response.body.load).toBe(95.5);
-      expect(response.body.set_type).toBe(SetType.WARMUP);
+      const body = response.body as ExerciseSetResponse;
+      expect(body.reps).toBe(15);
+      expect(body.load).toBe(95.5);
+      expect(body.set_type).toBe(SetType.WARMUP);
     });
 
     it('should reject request without authorization token', async () => {
@@ -452,10 +474,12 @@ describe('Exercise Sets (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const originalSet = originalSession.body.exercises[0].sets.find(
-        (s: any) => s.id === setId,
+      const originalSessionBody =
+        originalSession.body as WorkoutSessionResponse;
+      const originalSet = originalSessionBody.exercises[0].sets.find(
+        (s: ExerciseSetResponse) => s.id === setId,
       );
-      const originalCreatedAt = originalSet.created_at;
+      const originalCreatedAt = originalSet?.created_at;
 
       // Update the set
       await request(app.getHttpServer())
@@ -472,12 +496,13 @@ describe('Exercise Sets (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const updatedSet = updatedSession.body.exercises[0].sets.find(
-        (s: any) => s.id === setId,
+      const updatedSessionBody = updatedSession.body as WorkoutSessionResponse;
+      const updatedSet = updatedSessionBody.exercises[0].sets.find(
+        (s: ExerciseSetResponse) => s.id === setId,
       );
 
       // created_at should remain the same
-      expect(updatedSet.created_at).toBe(originalCreatedAt);
+      expect(updatedSet?.created_at).toBe(originalCreatedAt);
     });
   });
 
@@ -546,14 +571,15 @@ describe('Exercise Sets (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const exercise = sessionDetails.body.exercises[0];
+      const sessionBody = sessionDetails.body as WorkoutSessionResponse;
+      const exercise = sessionBody.exercises[0];
       expect(exercise.sets.length).toBe(5);
 
       const warmupSets = exercise.sets.filter(
-        (s: any) => s.set_type === SetType.WARMUP,
+        (s: ExerciseSetResponse) => s.set_type === (SetType.WARMUP as string),
       );
       const workingSets = exercise.sets.filter(
-        (s: any) => s.set_type === SetType.WORKING,
+        (s: ExerciseSetResponse) => s.set_type === (SetType.WORKING as string),
       );
 
       expect(warmupSets.length).toBe(2);
@@ -573,10 +599,12 @@ describe('Exercise Sets (e2e)', () => {
         })
         .expect(201);
 
+      const setBody = setResponse.body as ExerciseSetResponse;
+
       // Correct the reps (user miscounted)
       await request(app.getHttpServer())
         .patch(
-          `/sessions/${sessionId}/exercises/${sessionExerciseId}/sets/${setResponse.body.id}`,
+          `/sessions/${sessionId}/exercises/${sessionExerciseId}/sets/${setBody.id}`,
         )
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ reps: 11 })
@@ -588,10 +616,11 @@ describe('Exercise Sets (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const correctedSet = sessionDetails.body.exercises[0].sets.find(
-        (s: any) => s.id === setResponse.body.id,
+      const sessionBody = sessionDetails.body as WorkoutSessionResponse;
+      const correctedSet = sessionBody.exercises[0].sets.find(
+        (s: ExerciseSetResponse) => s.id === setBody.id,
       );
-      expect(correctedSet.reps).toBe(11);
+      expect(correctedSet?.reps).toBe(11);
     });
 
     it('should track sets chronologically by created_at', async () => {
@@ -618,14 +647,17 @@ describe('Exercise Sets (e2e)', () => {
         .send({ ...validExerciseSet, set_index: 3 })
         .expect(201);
 
+      const set1Body = set1Response.body as ExerciseSetResponse;
+      const set2Body = set2Response.body as ExerciseSetResponse;
+      const set3Body = set3Response.body as ExerciseSetResponse;
+
       // Verify chronological order
-      const created1 = new Date(set1Response.body.created_at).getTime();
-      const created2 = new Date(set2Response.body.created_at).getTime();
-      const created3 = new Date(set3Response.body.created_at).getTime();
+      const created1 = new Date(set1Body.created_at).getTime();
+      const created2 = new Date(set2Body.created_at).getTime();
+      const created3 = new Date(set3Body.created_at).getTime();
 
       expect(created2).toBeGreaterThanOrEqual(created1);
       expect(created3).toBeGreaterThanOrEqual(created2);
     });
   });
 });
-

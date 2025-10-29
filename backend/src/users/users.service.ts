@@ -56,12 +56,14 @@ export class UsersService {
       }
 
       // Log unexpected errors
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Failed to get user profile: ${error.message}`,
-        error.stack,
+        `Failed to get user profile: ${errorMessage}`,
+        errorStack,
       );
       throw new InternalServerErrorException('Failed to get user profile');
     }
   }
 }
-

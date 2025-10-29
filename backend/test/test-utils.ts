@@ -1,8 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
+import {
+  RegisterResponse,
+  LoginResponse,
+  WorkoutPlanResponse,
+  WorkoutSessionResponse,
+  ErrorResponse,
+} from './test-types';
 
 /**
  * Test utilities for E2E tests
@@ -17,7 +28,7 @@ export async function createTestApp(): Promise<INestApplication> {
   }).compile();
 
   const app = moduleFixture.createNestApplication();
-  
+
   // Apply global validation pipe (same as in main.ts)
   app.useGlobalPipes(
     new ValidationPipe({
@@ -29,9 +40,9 @@ export async function createTestApp(): Promise<INestApplication> {
       },
     }),
   );
-  
+
   await app.init();
-  
+
   return app;
 }
 
@@ -41,7 +52,7 @@ export async function createTestApp(): Promise<INestApplication> {
  */
 export async function cleanupDatabase(app: INestApplication): Promise<void> {
   const dataSource = app.get(DataSource);
-  
+
   await dataSource.query('DELETE FROM exercise_sets');
   await dataSource.query('DELETE FROM session_exercises');
   await dataSource.query('DELETE FROM workout_sessions');
@@ -65,16 +76,19 @@ export async function registerTestUser(
     .send({ email, password })
     .expect(201);
 
-  const userId = registerResponse.body.id;
+  const registerBody = registerResponse.body as RegisterResponse;
+  const userId = registerBody.id;
 
   const loginResponse = await request(app.getHttpServer())
     .post('/auth/login')
     .send({ email, password })
     .expect(200);
 
+  const loginBody = loginResponse.body as LoginResponse;
+
   return {
     userId,
-    accessToken: loginResponse.body.accessToken,
+    accessToken: loginBody.accessToken,
     email,
   };
 }
@@ -93,10 +107,18 @@ export async function createTestExercises(
   );
 
   if (existingExercises.length === 3) {
+    const benchPress = existingExercises.find((e) => e.name === 'Bench Press');
+    const squat = existingExercises.find((e) => e.name === 'Squat');
+    const deadlift = existingExercises.find((e) => e.name === 'Deadlift');
+
+    if (!benchPress || !squat || !deadlift) {
+      throw new Error('Expected exercises not found');
+    }
+
     return {
-      benchPressId: existingExercises.find((e) => e.name === 'Bench Press').id,
-      squatId: existingExercises.find((e) => e.name === 'Squat').id,
-      deadliftId: existingExercises.find((e) => e.name === 'Deadlift').id,
+      benchPressId: benchPress.id,
+      squatId: squat.id,
+      deadliftId: deadlift.id,
     };
   }
 
@@ -166,9 +188,11 @@ export async function createTestWorkoutPlan(
     })
     .expect(201);
 
+  const planBody = response.body as WorkoutPlanResponse;
+
   return {
-    planId: response.body.id,
-    planExerciseIds: response.body.exercises.map((e: any) => e.id),
+    planId: planBody.id,
+    planExerciseIds: planBody.exercises.map((e) => e.id),
   };
 }
 
@@ -186,16 +210,22 @@ export async function createTestWorkoutSession(
     .send({ plan_id: planId })
     .expect(201);
 
+  const sessionBody = response.body as WorkoutSessionResponse;
+
   return {
-    sessionId: response.body.id,
+    sessionId: sessionBody.id,
   };
 }
 
 /**
  * Extract error message from response
  */
-export function getErrorMessage(response: any): string {
-  return response.body.message || response.body.error || 'Unknown error';
+export function getErrorMessage(response: request.Response): string {
+  const body = response.body as ErrorResponse;
+  if (Array.isArray(body.message)) {
+    return body.message.join(', ');
+  }
+  return body.message || body.error || 'Unknown error';
 }
 
 /**
@@ -214,4 +244,3 @@ export function isValidISODate(dateString: string): boolean {
   const date = new Date(dateString);
   return date instanceof Date && !isNaN(date.getTime());
 }
-

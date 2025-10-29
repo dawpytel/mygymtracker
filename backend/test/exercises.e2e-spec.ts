@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -8,6 +9,7 @@ import {
   isValidUUID,
 } from './test-utils';
 import { testUsers, paginationParams, searchParams } from './mock-data';
+import { ExerciseResponse, PaginatedResponse } from './test-types';
 
 describe('Exercises (e2e)', () => {
   let app: INestApplication;
@@ -49,18 +51,20 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('items');
-      expect(response.body).toHaveProperty('total');
-      expect(Array.isArray(response.body.items)).toBe(true);
-      expect(typeof response.body.total).toBe('number');
+      expect(body).toHaveProperty('items');
+      expect(body).toHaveProperty('total');
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(typeof body.total).toBe('number');
 
       // Validate at least the test exercises exist
-      expect(response.body.total).toBeGreaterThanOrEqual(3);
-      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(body.total).toBeGreaterThanOrEqual(3);
+      expect(body.items.length).toBeGreaterThan(0);
 
       // Validate exercise structure
-      const exercise = response.body.items[0];
+      const exercise = body.items[0];
       expect(exercise).toHaveProperty('id');
       expect(exercise).toHaveProperty('name');
       expect(isValidUUID(exercise.id)).toBe(true);
@@ -78,7 +82,8 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.items.length).toBeLessThanOrEqual(2);
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
+      expect(body.items.length).toBeLessThanOrEqual(2);
     });
 
     it('should support pagination with offset parameter', async () => {
@@ -96,9 +101,12 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const page1Body = page1.body as PaginatedResponse<ExerciseResponse>;
+      const page2Body = page2.body as PaginatedResponse<ExerciseResponse>;
+
       // Items should be different
-      if (page1.body.items.length > 0 && page2.body.items.length > 0) {
-        expect(page1.body.items[0].id).not.toBe(page2.body.items[0].id);
+      if (page1Body.items.length > 0 && page2Body.items.length > 0) {
+        expect(page1Body.items[0].id).not.toBe(page2Body.items[0].id);
       }
     });
 
@@ -108,8 +116,9 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
       // Default limit is 10 according to types.ts
-      expect(response.body.items.length).toBeLessThanOrEqual(10);
+      expect(body.items.length).toBeLessThanOrEqual(10);
     });
 
     it('should support search parameter for autocomplete', async () => {
@@ -119,11 +128,13 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
+
       // Should find Bench Press
-      expect(response.body.total).toBeGreaterThanOrEqual(1);
-      
+      expect(body.total).toBeGreaterThanOrEqual(1);
+
       // All results should match search term
-      response.body.items.forEach((exercise: any) => {
+      body.items.forEach((exercise: ExerciseResponse) => {
         expect(exercise.name.toLowerCase()).toContain('bench');
       });
     });
@@ -141,7 +152,12 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(lowerCaseResponse.body.total).toBe(upperCaseResponse.body.total);
+      const lowerBody =
+        lowerCaseResponse.body as PaginatedResponse<ExerciseResponse>;
+      const upperBody =
+        upperCaseResponse.body as PaginatedResponse<ExerciseResponse>;
+
+      expect(lowerBody.total).toBe(upperBody.total);
     });
 
     it('should return empty array for non-existent search term', async () => {
@@ -151,8 +167,9 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.items).toEqual([]);
-      expect(response.body.total).toBe(0);
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
+      expect(body.items).toEqual([]);
+      expect(body.total).toBe(0);
     });
 
     it('should combine search and pagination parameters', async () => {
@@ -162,8 +179,9 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.items.length).toBeLessThanOrEqual(5);
-      response.body.items.forEach((exercise: any) => {
+      const body = response.body as PaginatedResponse<ExerciseResponse>;
+      expect(body.items.length).toBeLessThanOrEqual(5);
+      body.items.forEach((exercise: ExerciseResponse) => {
         expect(exercise.name.toLowerCase()).toContain('press');
       });
     });
@@ -196,13 +214,15 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
+      const body = response.body as ExerciseResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('name');
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('name');
 
       // Validate data
-      expect(response.body.id).toBe(exerciseIds.benchPressId);
-      expect(response.body.name).toBe('Bench Press');
+      expect(body.id).toBe(exerciseIds.benchPressId);
+      expect(body.name).toBe('Bench Press');
     });
 
     it('should reject request without authorization token', async () => {
@@ -213,7 +233,7 @@ describe('Exercises (e2e)', () => {
 
     it('should return 404 for non-existent exercise id', async () => {
       const nonExistentId = '550e8400-e29b-41d4-a716-446655440099';
-      
+
       await request(app.getHttpServer())
         .get(`/exercises/${nonExistentId}`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -238,8 +258,11 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response1.body.id).not.toBe(response2.body.id);
-      expect(response1.body.name).not.toBe(response2.body.name);
+      const body1 = response1.body as ExerciseResponse;
+      const body2 = response2.body as ExerciseResponse;
+
+      expect(body1.id).not.toBe(body2.id);
+      expect(body1.name).not.toBe(body2.name);
     });
 
     it('should return same data when requested multiple times', async () => {
@@ -278,8 +301,11 @@ describe('Exercises (e2e)', () => {
         .set('Authorization', `Bearer ${user2.accessToken}`)
         .expect(200);
 
+      const body1 = response1.body as PaginatedResponse<ExerciseResponse>;
+      const body2 = response2.body as PaginatedResponse<ExerciseResponse>;
+
       // Both users should see the same exercises
-      expect(response1.body.total).toBe(response2.body.total);
+      expect(body1.total).toBe(body2.total);
     });
 
     it('should return consistent exercise list across users', async () => {
@@ -306,4 +332,3 @@ describe('Exercises (e2e)', () => {
     });
   });
 });
-

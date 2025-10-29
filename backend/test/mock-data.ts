@@ -3,11 +3,7 @@
  * Provides consistent test data that follows validation rules
  */
 
-import {
-  IntensityTechnique,
-  SetType,
-  SessionStatus,
-} from '../src/types';
+import { IntensityTechnique, SetType, SessionStatus } from '../src/types';
 
 /**
  * Test user credentials
@@ -297,4 +293,3 @@ export const searchParams = {
   nonExistent: { search: 'nonexistent-exercise-name-12345' },
   empty: { search: '' },
 };
-

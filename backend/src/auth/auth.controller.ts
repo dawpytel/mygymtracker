@@ -26,6 +26,7 @@ import {
   OAuthLoginDto,
   LogoutResponseDto,
 } from '../types';
+import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * AuthController - handles authentication endpoints
@@ -186,11 +187,9 @@ export class AuthController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error',
   })
-  async logout(@Req() req: any): Promise<LogoutResponseDto> {
+  logout(@Req() req: AuthenticatedRequest): LogoutResponseDto {
     const userId = req.user.id;
-    const token = req.headers.authorization?.replace('Bearer ', '');
-
-    return this.authService.logout(userId, token);
+    return this.authService.logout(userId);
   }
 
   /**

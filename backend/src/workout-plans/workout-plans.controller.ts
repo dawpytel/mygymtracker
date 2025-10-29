@@ -7,7 +7,7 @@ import {
   Body,
   Query,
   Param,
-  Request,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -29,6 +29,7 @@ import {
   WorkoutPlanDto,
   UpdateWorkoutPlanDto,
 } from '../types';
+import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * WorkoutPlansController - handles HTTP requests for workout plans
@@ -88,7 +89,7 @@ export class WorkoutPlansController {
   })
   async findAll(
     @Query() query: WorkoutPlanQueryDto,
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
   ): Promise<WorkoutPlanListDto> {
     return this.workoutPlansService.findUserPlans(req.user.id, query);
   }
@@ -127,7 +128,7 @@ export class WorkoutPlansController {
   })
   async create(
     @Body() createWorkoutPlanDto: CreateWorkoutPlanDto,
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
   ): Promise<WorkoutPlanDto> {
     return this.workoutPlansService.createPlan(
       req.user.id,
@@ -175,7 +176,7 @@ export class WorkoutPlansController {
   })
   async findOne(
     @Param('id') id: string,
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
   ): Promise<WorkoutPlanDto> {
     return this.workoutPlansService.findPlanById(req.user.id, id);
   }
@@ -229,7 +230,7 @@ export class WorkoutPlansController {
   async update(
     @Param('id') id: string,
     @Body() updateWorkoutPlanDto: UpdateWorkoutPlanDto,
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
   ): Promise<WorkoutPlanDto> {
     return this.workoutPlansService.updatePlan(
       req.user.id,
@@ -276,7 +277,10 @@ export class WorkoutPlansController {
     status: 500,
     description: 'Internal server error',
   })
-  async delete(@Param('id') id: string, @Request() req): Promise<void> {
+  async delete(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
     await this.workoutPlansService.deletePlan(req.user.id, id);
   }
 }

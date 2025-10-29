@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -7,6 +8,7 @@ import {
   isValidISODate,
 } from './test-utils';
 import { testUsers } from './mock-data';
+import { RegisterResponse, LoginResponse, ErrorResponse } from './test-types';
 
 describe('Authentication (e2e)', () => {
   let app: INestApplication;
@@ -34,15 +36,17 @@ describe('Authentication (e2e)', () => {
         })
         .expect(201);
 
+      const body = response.body as RegisterResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('email');
-      expect(response.body).toHaveProperty('created_at');
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('email');
+      expect(body).toHaveProperty('created_at');
 
       // Validate data types
-      expect(isValidUUID(response.body.id)).toBe(true);
-      expect(response.body.email).toBe(testUsers.user1.email);
-      expect(isValidISODate(response.body.created_at)).toBe(true);
+      expect(isValidUUID(body.id)).toBe(true);
+      expect(body.email).toBe(testUsers.user1.email);
+      expect(isValidISODate(body.created_at)).toBe(true);
 
       // Should not return password
       expect(response.body).not.toHaveProperty('password');
@@ -58,8 +62,12 @@ describe('Authentication (e2e)', () => {
         })
         .expect(400);
 
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/email/i);
+      const body = response.body as ErrorResponse;
+      expect(body).toHaveProperty('message');
+      const message = Array.isArray(body.message)
+        ? body.message.join(' ')
+        : body.message;
+      expect(message).toMatch(/email/i);
     });
 
     it('should reject registration with password less than 8 characters', async () => {
@@ -71,8 +79,12 @@ describe('Authentication (e2e)', () => {
         })
         .expect(400);
 
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/password.*8.*characters/i);
+      const body = response.body as ErrorResponse;
+      expect(body).toHaveProperty('message');
+      const message = Array.isArray(body.message)
+        ? body.message.join(' ')
+        : body.message;
+      expect(message).toMatch(/password.*8.*characters/i);
     });
 
     it('should reject registration with missing email', async () => {
@@ -112,8 +124,12 @@ describe('Authentication (e2e)', () => {
         })
         .expect(409);
 
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/email.*exists|already/i);
+      const body = response.body as ErrorResponse;
+      expect(body).toHaveProperty('message');
+      const message = Array.isArray(body.message)
+        ? body.message.join(' ')
+        : body.message;
+      expect(message).toMatch(/email.*exists|already/i);
     });
   });
 
@@ -138,17 +154,19 @@ describe('Authentication (e2e)', () => {
         })
         .expect(200);
 
+      const body = response.body as LoginResponse;
+
       // Validate response structure
-      expect(response.body).toHaveProperty('accessToken');
-      expect(response.body).toHaveProperty('refreshToken');
+      expect(body).toHaveProperty('accessToken');
+      expect(body).toHaveProperty('refreshToken');
 
       // Validate tokens are strings
-      expect(typeof response.body.accessToken).toBe('string');
-      expect(typeof response.body.refreshToken).toBe('string');
+      expect(typeof body.accessToken).toBe('string');
+      expect(typeof body.refreshToken).toBe('string');
 
       // Tokens should be JWT format (3 parts separated by dots)
-      expect(response.body.accessToken.split('.').length).toBe(3);
-      expect(response.body.refreshToken.split('.').length).toBe(3);
+      expect(body.accessToken.split('.').length).toBe(3);
+      expect(body.refreshToken.split('.').length).toBe(3);
     });
 
     it('should reject login with invalid email', async () => {
@@ -203,8 +221,12 @@ describe('Authentication (e2e)', () => {
         })
         .expect(400);
 
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/provider/i);
+      const body = response.body as ErrorResponse;
+      expect(body).toHaveProperty('message');
+      const message = Array.isArray(body.message)
+        ? body.message.join(' ')
+        : body.message;
+      expect(message).toMatch(/provider/i);
     });
 
     it('should reject OAuth login with missing token', async () => {
@@ -239,7 +261,8 @@ describe('Authentication (e2e)', () => {
         })
         .expect(200);
 
-      accessToken = loginResponse.body.accessToken;
+      const loginBody = loginResponse.body as LoginResponse;
+      accessToken = loginBody.accessToken;
     });
 
     it('should logout with valid token', async () => {
@@ -248,8 +271,12 @@ describe('Authentication (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/logged out/i);
+      const body = response.body as ErrorResponse;
+      expect(body).toHaveProperty('message');
+      const message = Array.isArray(body.message)
+        ? body.message.join(' ')
+        : body.message;
+      expect(message).toMatch(/logged out/i);
     });
 
     it('should reject logout without token', async () => {
@@ -282,7 +309,8 @@ describe('Authentication (e2e)', () => {
         })
         .expect(201);
 
-      expect(isValidUUID(registerResponse.body.id)).toBe(true);
+      const registerBody = registerResponse.body as RegisterResponse;
+      expect(isValidUUID(registerBody.id)).toBe(true);
 
       // Login
       const loginResponse = await request(app.getHttpServer())
@@ -293,12 +321,13 @@ describe('Authentication (e2e)', () => {
         })
         .expect(200);
 
-      expect(loginResponse.body.accessToken).toBeDefined();
+      const loginBody = loginResponse.body as LoginResponse;
+      expect(loginBody.accessToken).toBeDefined();
 
       // Logout
       await request(app.getHttpServer())
         .post('/auth/logout')
-        .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+        .set('Authorization', `Bearer ${loginBody.accessToken}`)
         .expect(200);
     });
 
@@ -321,6 +350,8 @@ describe('Authentication (e2e)', () => {
         })
         .expect(200);
 
+      const loginBody1 = loginResponse1.body as LoginResponse;
+
       // Wait 1 second to ensure different timestamp in JWT
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -333,10 +364,10 @@ describe('Authentication (e2e)', () => {
         })
         .expect(200);
 
+      const loginBody2 = loginResponse2.body as LoginResponse;
+
       // Both tokens should be valid but different
-      expect(loginResponse1.body.accessToken).not.toBe(
-        loginResponse2.body.accessToken,
-      );
+      expect(loginBody1.accessToken).not.toBe(loginBody2.accessToken);
     });
   });
 });

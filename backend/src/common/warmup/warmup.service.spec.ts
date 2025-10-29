@@ -110,7 +110,10 @@ describe('WarmupService', () => {
     });
 
     it('should handle null history by using default', () => {
-      const result = service.calculateFromHistory(null as any, 2);
+      const result = service.calculateFromHistory(
+        null as unknown as number[],
+        2,
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].load).toBeGreaterThan(0);

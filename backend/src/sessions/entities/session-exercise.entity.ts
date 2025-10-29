@@ -50,4 +50,3 @@ export class SessionExercise {
   @JoinColumn({ name: 'exercise_id' })
   exercise: Exercise;
 }
-

@@ -66,4 +66,3 @@ export class ExercisesController {
     return this.exercisesService.findOne(id);
   }
 }
-

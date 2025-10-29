@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Req,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, HttpStatus } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -14,6 +8,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserProfileDto } from '../types';
+import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * UsersController - handles user-related endpoints
@@ -32,7 +27,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get current user profile',
-    description: 'Retrieve the authenticated user\'s profile information',
+    description: "Retrieve the authenticated user's profile information",
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -51,10 +46,9 @@ export class UsersController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error',
   })
-  async getMe(@Req() req: any): Promise<UserProfileDto> {
+  async getMe(@Req() req: AuthenticatedRequest): Promise<UserProfileDto> {
     const userId = req.user.id;
 
     return this.usersService.getProfile({ userId });
   }
 }
-

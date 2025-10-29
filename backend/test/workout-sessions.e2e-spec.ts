@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
@@ -13,9 +17,7 @@ import {
 import {
   testUsers,
   validStatusUpdates,
-  invalidStatusUpdate,
   validSessionExerciseUpdate,
-  invalidSessionExerciseUpdate,
   validExerciseSet,
   validWarmupSet,
   invalidExerciseSet_SetIndex,
@@ -27,7 +29,6 @@ import { SessionStatus } from '../src/types';
 describe('Workout Sessions (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let userId: string;
   let exerciseIds: {
     benchPressId: string;
     squatId: string;
@@ -769,4 +770,3 @@ describe('Workout Sessions (e2e)', () => {
     });
   });
 });
-
