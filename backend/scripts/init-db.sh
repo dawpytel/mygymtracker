@@ -11,8 +11,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'myapp_db')\gexec
 
     -- Grant all privileges to postgres user
-    GRANT ALL PRIVILEGES ON DATABASE myapp_e2e TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE myapp_db TO postgres;
 EOSQL
 
-echo "✓ Databases initialized: myapp_db (default), myapp_db (for E2E tests)"
+echo "✓ Databases initialized: $POSTGRES_DB (default), myapp_db (for E2E tests)"
 

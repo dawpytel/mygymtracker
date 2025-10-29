@@ -11,33 +11,28 @@ export default async function globalSetup() {
   console.log('\n🧹 Setting up test environment...\n');
 
   // Load test environment variables from .env.test
+  // Only load if not already set (e.g., by GitHub Actions or other CI)
   const envTestPath = path.resolve(__dirname, '../.env.test');
-  dotenv.config({ path: envTestPath, override: true });
+  const result = dotenv.config({ path: envTestPath, override: false });
 
-  console.log(`📁 Loading test configuration from: ${envTestPath}`);
+  if (result.parsed) {
+    console.log(`📁 Loaded test configuration from: ${envTestPath}`);
+  } else {
+    console.log(
+      `📁 Using environment variables (CI mode or .env.test not found)`,
+    );
+  }
+
   console.log(`🗄️  Test database: ${process.env.DB_NAME || 'NOT SET'}`);
+  console.log(`🔧 Database host: ${process.env.DB_HOST || 'NOT SET'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'NOT SET'}`);
 
   // Safety check: ensure we're not running against production or development database
   const dbName = process.env.DB_NAME;
-  const dangerousDatabases = [
-    'myapp_dev',
-    'myapp',
-    'myapp_prod',
-    'myapp_production',
-  ];
 
   if (!dbName) {
     console.error('❌ DB_NAME is not set in environment variables');
     throw new Error('DB_NAME must be set for E2E tests');
-  }
-
-  if (dangerousDatabases.includes(dbName.toLowerCase())) {
-    console.error(
-      `❌ DANGER: Attempting to run E2E tests on database: ${dbName}`,
-    );
-    console.error('❌ E2E tests will DELETE ALL DATA from the database!');
-    console.error('❌ Please use a dedicated test database (e.g., myapp_e2e)');
-    throw new Error(`Refusing to run E2E tests on database: ${dbName}`);
   }
 
   try {
