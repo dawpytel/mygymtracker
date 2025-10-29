@@ -82,7 +82,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: myapp_dev
+          POSTGRES_DB: myapp_db
         ports:
           - 5432:5432
         options: >-
@@ -106,15 +106,21 @@ jobs:
         working-directory: ./backend
         run: npm ci
 
-      - name: Run database migrations
+      - name: Create E2E test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE myapp_db;"
+
+      - name: Run database migrations on E2E database
         working-directory: ./backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
-          DB_NAME: myapp_dev
-          DB_DATABASE: myapp_dev
+          DB_NAME: myapp_db
+          DB_DATABASE: myapp_db
           NODE_ENV: test
         run: npm run migration:run
 
@@ -125,13 +131,13 @@ jobs:
           DB_PORT: 5432
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
-          DB_NAME: myapp_dev
-          DB_DATABASE: myapp_dev
+          DB_NAME: myapp_db
+          DB_DATABASE: myapp_db
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN: 1d
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
           REFRESH_TOKEN_EXPIRES_IN: 7d
-          NODE_ENV: development
+          NODE_ENV: test
           PORT: 3000
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
