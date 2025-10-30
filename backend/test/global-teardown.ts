@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import { AppDataSource } from '../src/db/data-source';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -10,13 +9,58 @@ import * as path from 'path';
 export default async function globalTeardown() {
   console.log('\n🧹 Cleaning up test environment...\n');
 
+  // Detect if we're in CI environment
+  const isCI =
+    process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
   // Load test environment variables from .env.test
+  // In CI: don't override (use CI-provided variables)
+  // Locally: override to ensure test database is used
   const envTestPath = path.resolve(__dirname, '../.env.test');
-  dotenv.config({ path: envTestPath, override: true });
+  dotenv.config({ path: envTestPath, override: !isCI });
+
+  console.log(`🗄️  Cleaning database: ${process.env.DB_NAME || 'NOT SET'}`);
+
+  // Safety check: ensure DB_NAME is set
+  const dbName = process.env.DB_NAME;
+  if (!dbName) {
+    console.error('❌ DB_NAME is not set - skipping cleanup');
+    return;
+  }
+
+  // Safety check: warn if database name looks suspicious
+  const suspiciousNames = [
+    'myapp_dev',
+    'myapp_prod',
+    'postgres',
+    'production',
+    'prod',
+  ];
+  if (suspiciousNames.some((name) => dbName.toLowerCase().includes(name))) {
+    console.error(
+      `❌ DANGER: Attempting to clean suspicious database: ${dbName}`,
+    );
+    console.error(
+      `❌ This database name contains a potentially dangerous keyword.`,
+    );
+    console.error('❌ Skipping cleanup to prevent data loss!');
+    return;
+  }
 
   try {
-    // Initialize data source
-    const dataSource = new DataSource(AppDataSource.options);
+    // Create a fresh data source with current environment variables
+    // DO NOT import AppDataSource as it loads .env at import time
+    const dataSource = new DataSource({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_NAME!,
+      // No entities needed for cleanup
+      synchronize: false,
+    });
+
     await dataSource.initialize();
 
     // Clean all tables in reverse order of dependencies

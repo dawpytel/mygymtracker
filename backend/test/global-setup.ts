@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import { AppDataSource } from '../src/db/data-source';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -15,27 +14,28 @@ export default async function globalSetup() {
     process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
   // Load test environment variables from .env.test
-  // In CI: don't override (use CI-provided variables)
-  // Locally: override to ensure test database is used
+  // In CI: don't override (use CI-provided variables from GitHub Environment secrets)
+  // Locally: override to ensure test database from .env.test is used
   const envTestPath = path.resolve(__dirname, '../.env.test');
   const result = dotenv.config({ path: envTestPath, override: !isCI });
 
   if (result.parsed) {
     console.log(`📁 Loaded test configuration from: ${envTestPath}`);
     console.log(
-      `🔧 Mode: ${isCI ? 'CI (respecting CI env vars)' : 'Local (override enabled)'}`,
+      `🔧 Mode: ${isCI ? 'CI (using GitHub Environment secrets)' : 'Local (using .env.test)'}`,
     );
+  } else if (!isCI) {
+    console.error(`❌ .env.test file not found at: ${envTestPath}`);
+    throw new Error('.env.test file is required for local E2E tests');
   } else {
-    console.log(
-      `📁 Using environment variables (${isCI ? 'CI mode' : 'env file not found'})`,
-    );
+    console.log('📁 CI mode: using GitHub Environment secrets');
   }
 
   console.log(`🗄️  Test database: ${process.env.DB_NAME || 'NOT SET'}`);
   console.log(`🔧 Database host: ${process.env.DB_HOST || 'NOT SET'}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'NOT SET'}`);
 
-  // Safety check: ensure we're not running against production or development database
+  // Safety check: ensure DB_NAME is set
   const dbName = process.env.DB_NAME;
 
   if (!dbName) {
@@ -43,17 +43,39 @@ export default async function globalSetup() {
     throw new Error('DB_NAME must be set for E2E tests');
   }
 
-  // Safety check: ensure we're using the test database
-  if (dbName === 'myapp_dev' || dbName === 'myapp_prod') {
+  // Safety check: warn if database name looks suspicious
+  const suspiciousNames = [
+    'myapp_dev',
+    'myapp_prod',
+    'postgres',
+    'production',
+    'prod',
+  ];
+  if (suspiciousNames.some((name) => dbName.toLowerCase().includes(name))) {
     console.error(
-      `❌ DANGER: Attempting to run E2E tests against ${dbName} database!`,
+      `❌ DANGER: Attempting to run E2E tests against suspicious database: ${dbName}`,
     );
-    throw new Error(`E2E tests must use myapp_e2e database, not ${dbName}`);
+    console.error(
+      `❌ This database name contains a potentially dangerous keyword.`,
+    );
+    throw new Error(
+      `E2E tests should use a dedicated test database, not ${dbName}`,
+    );
   }
 
   try {
-    // Initialize data source
-    const dataSource = new DataSource(AppDataSource.options);
+    // Create fresh data source with test environment variables
+    const dataSource = new DataSource({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_NAME!,
+      // No entities needed for cleanup
+      synchronize: false,
+    });
+
     await dataSource.initialize();
 
     // Clean all tables in reverse order of dependencies

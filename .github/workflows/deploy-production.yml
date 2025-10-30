@@ -1,0 +1,270 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  # Run existing CI checks first
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./backend
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: ./backend
+        run: npm run test:cov
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: Integration
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: myapp_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Create E2E test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'myapp_db'" | grep -q 1 || psql -h localhost -U postgres -d postgres -c "CREATE DATABASE myapp_db;"
+
+      - name: Run database migrations
+        working-directory: ./backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: myapp_db
+          DB_DATABASE: myapp_db
+          NODE_ENV: test
+        run: npm run migration:run
+
+      - name: Run E2E tests
+        working-directory: ./backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: myapp_db
+          DB_DATABASE: myapp_db
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: 1d
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          REFRESH_TOKEN_EXPIRES_IN: 7d
+          NODE_ENV: test
+          PORT: 3000
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: npm run test:e2e
+
+  # Deploy to Render.com
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, e2e-tests] # Only deploy if all tests pass
+    environment:
+      name: Production
+      url: https://mygymtracker-web.onrender.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: ${{ github.token }}
+          environment: Production
+          initial-status: in_progress
+
+      - name: Deploy Backend to Render
+        id: deploy-backend
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID_BACKEND }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-success: true
+
+      - name: Deploy Frontend to Render
+        id: deploy-frontend
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID_FRONTEND }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-success: true
+
+      - name: Wait for Services to Stabilize
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Verify Backend Health
+        id: verify-backend
+        run: |
+          echo "Checking backend health..."
+          BACKEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://mygymtracker-api.onrender.com/api/health)
+
+          if [ $BACKEND_STATUS -eq 200 ]; then
+            echo "✅ Backend is healthy (HTTP $BACKEND_STATUS)"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Backend health check failed (HTTP $BACKEND_STATUS)"
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Verify Frontend Accessibility
+        id: verify-frontend
+        run: |
+          echo "Checking frontend accessibility..."
+          FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://mygymtracker-web.onrender.com)
+
+          if [ $FRONTEND_STATUS -eq 200 ]; then
+            echo "✅ Frontend is accessible (HTTP $FRONTEND_STATUS)"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Frontend check failed (HTTP $FRONTEND_STATUS)"
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Update Deployment Status - Success
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+          environment-url: https://mygymtracker-web.onrender.com
+
+      - name: Update Deployment Status - Failure
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: failure
+
+      - name: Post Deployment Summary
+        if: always()
+        run: |
+          echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Services" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | [mygymtracker-web](https://mygymtracker-web.onrender.com) | ${{ steps.verify-frontend.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend API | [mygymtracker-api](https://mygymtracker-api.onrender.com) | ${{ steps.verify-backend.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Docs | [Swagger UI](https://mygymtracker-api.onrender.com/api/docs) | - |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Deployment completed successfully!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment failed. Check logs above for details.**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Notify on deployment status
+  notify:
+    name: Post-Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always()
+
+    steps:
+      - name: Deployment Success Notification
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "✅ Deployment to Production succeeded!"
+          echo "Application is live at: https://mygymtracker-web.onrender.com"
+
+      - name: Deployment Failure Notification
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment to Production failed!"
+          echo "Please check the logs and take appropriate action."
+          exit 1

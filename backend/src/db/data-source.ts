@@ -1,10 +1,8 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 
-// Only load .env if DB_NAME is not already set (e.g., by tests or CI)
-if (!process.env.DB_NAME) {
-  dotenv.config();
-}
+// Load .env file - will be overridden by environment variables if they exist
+dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -12,7 +10,7 @@ export const AppDataSource = new DataSource({
   port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'myapp_dev',
+  database: process.env.DB_NAME!,
   entities: ['src/**/*.entity{.ts,.js}'],
   migrations: ['src/db/migrations/*{.ts,.js}'],
   synchronize: false,
