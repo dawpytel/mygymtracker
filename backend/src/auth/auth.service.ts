@@ -217,31 +217,79 @@ export class AuthService {
       }
 
       // Upsert user and OAuth provider
+      // First check if OAuth connection already exists
       let oauth = await this.oauthRepo.findOne({
         where: { providerName: provider, providerUserId },
       });
+      
       let user: User | null = null;
+      
       if (oauth) {
+        // OAuth connection exists, find associated user
         user = await this.userRepository.findOne({ where: { id: oauth.userId } });
         if (!user) {
           throw new UnauthorizedException('OAuth user not found');
         }
       } else {
+        // OAuth connection doesn't exist yet
+        // Check if user with this email already exists
         user = await this.userRepository.findOne({ where: { email } });
+        
         if (!user) {
-          user = this.userRepository.create({
-            email,
-            password_hash: '',
-            account_created_at: new Date(),
-          });
-          user = await this.userRepository.save(user);
+          // New user - create account
+          try {
+            user = this.userRepository.create({
+              email,
+              password_hash: '',
+              account_created_at: new Date(),
+            });
+            user = await this.userRepository.save(user);
+          } catch (saveError) {
+            // Handle race condition - user might have been created between check and save
+            if (
+              saveError &&
+              typeof saveError === 'object' &&
+              'code' in saveError &&
+              (saveError as { code: string }).code === '23505'
+            ) {
+              // Unique constraint violation - try to find user again
+              user = await this.userRepository.findOne({ where: { email } });
+              if (!user) {
+                throw saveError; // Still can't find user, re-throw original error
+              }
+            } else {
+              throw saveError;
+            }
+          }
         }
-        oauth = this.oauthRepo.create({
-          userId: user.id,
-          providerName: provider,
-          providerUserId,
-        });
-        await this.oauthRepo.save(oauth);
+        
+        // Create OAuth provider link (user exists now for sure)
+        try {
+          oauth = this.oauthRepo.create({
+            userId: user.id,
+            providerName: provider,
+            providerUserId,
+          });
+          await this.oauthRepo.save(oauth);
+        } catch (oauthError) {
+          // Handle race condition - OAuth link might already exist
+          if (
+            oauthError &&
+            typeof oauthError === 'object' &&
+            'code' in oauthError &&
+            (oauthError as { code: string }).code === '23505'
+          ) {
+            // Duplicate OAuth link - that's fine, just fetch it
+            oauth = await this.oauthRepo.findOne({
+              where: { providerName: provider, providerUserId },
+            });
+            if (!oauth) {
+              throw oauthError; // Can't find OAuth record, re-throw
+            }
+          } else {
+            throw oauthError;
+          }
+        }
       }
 
       // Update last login
