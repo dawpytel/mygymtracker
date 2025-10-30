@@ -56,12 +56,16 @@ services:
       - key: PORT
         value: 3000
 
-      # Optional: Add OAuth credentials manually after deployment
-      # Uncomment and set these in Render Dashboard after deployment
-      # - key: GOOGLE_CLIENT_ID
-      #   sync: false
-      # - key: GOOGLE_CLIENT_SECRET
-      #   sync: false
+      # OAuth Configuration
+      # IMPORTANT: Set these in Render Dashboard after deployment
+      # Google OAuth: https://console.cloud.google.com/
+      # - Create OAuth 2.0 Client ID for Web application
+      # - Add authorized JavaScript origins: https://mygymtracker-web.onrender.com
+      # - Add authorized redirect URIs: https://mygymtracker-web.onrender.com
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # Optional: Apple OAuth (if implementing Apple Sign-In)
       # - key: APPLE_CLIENT_ID
       #   sync: false
       # - key: APPLE_TEAM_ID
@@ -104,12 +108,15 @@ services:
     envVars:
       # API URL for frontend
       - key: VITE_API_URL
-        value: https://mygymtracker-api.onrender.com
+        value: https://mygymtracker-api.onrender.com/api
 
-      # Optional: Add OAuth client IDs manually after deployment
-      # These are public, so can be set here
-      # - key: VITE_GOOGLE_CLIENT_ID
-      #   sync: false
+      # OAuth Client IDs (public, safe to include)
+      # IMPORTANT: Set VITE_GOOGLE_CLIENT_ID in Render Dashboard
+      # Must match the GOOGLE_CLIENT_ID set in the backend service
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+
+      # Optional: Apple OAuth (if implementing Apple Sign-In)
       # - key: VITE_APPLE_CLIENT_ID
       #   sync: false
 
