@@ -19,9 +19,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "NODE_ENV=test jest --config ./test/jest-e2e.json",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
+    "typeorm:prod": "node ./node_modules/typeorm/cli",
     "migration:generate": "npm run typeorm -- migration:generate -d src/db/data-source.ts",
     "migration:create": "npm run typeorm -- migration:create",
-    "migration:run": "npm run typeorm -- migration:run -d src/db/data-source.ts",
+    "migration:run": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run typeorm:prod -- migration:run -d dist/db/data-source.js; else npm run typeorm -- migration:run -d src/db/data-source.ts; fi",
     "migration:revert": "npm run typeorm -- migration:revert -d src/db/data-source.ts",
     "migration:show": "npm run typeorm -- migration:show -d src/db/data-source.ts",
     "db:seed-dev": "psql -U ${DB_USERNAME:-postgres} -d ${DB_NAME} -f src/db/seed-dev-user.sql"

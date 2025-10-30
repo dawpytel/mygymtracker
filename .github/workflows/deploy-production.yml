@@ -132,13 +132,13 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: npm run test:e2e
 
-  # Deploy to Render.com
+  # Deploy to Render.com (requires manual approval)
   deploy:
     name: Deploy to Render
     runs-on: ubuntu-latest
     needs: [lint, unit-tests, e2e-tests] # Only deploy if all tests pass
     environment:
-      name: Production
+      name: production # GitHub environment with required reviewers
       url: https://mygymtracker-web.onrender.com
 
     steps:
@@ -150,7 +150,7 @@ jobs:
         id: deployment
         with:
           token: ${{ github.token }}
-          environment: Production
+          environment: production
           initial-status: in_progress
 
       - name: Deploy Backend to Render
@@ -212,6 +212,7 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
           state: success
           environment-url: https://mygymtracker-web.onrender.com
+          environment: production
 
       - name: Update Deployment Status - Failure
         if: failure()
