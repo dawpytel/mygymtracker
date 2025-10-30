@@ -7,11 +7,13 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+// Remove the interface entirely if no props are needed
+// Or keep it empty for future expansion
 interface OAuthButtonsProps {
-  isLoading?: boolean;
+  // Reserved for future props
 }
 
-export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
+export function OAuthButtons({}: OAuthButtonsProps = {}) {
   const { oauthLogin } = useAuthContext();
   const navigate = useNavigate();
 
