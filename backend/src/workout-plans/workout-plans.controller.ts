@@ -29,7 +29,7 @@ import {
   WorkoutPlanDto,
   UpdateWorkoutPlanDto,
 } from '../types';
-import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * WorkoutPlansController - handles HTTP requests for workout plans

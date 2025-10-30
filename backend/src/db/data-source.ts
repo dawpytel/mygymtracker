@@ -1,7 +1,10 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+// Only load .env if DB_NAME is not already set (e.g., by tests or CI)
+if (!process.env.DB_NAME) {
+  dotenv.config();
+}
 
 export const AppDataSource = new DataSource({
   type: 'postgres',

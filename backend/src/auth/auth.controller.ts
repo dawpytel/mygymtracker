@@ -26,7 +26,7 @@ import {
   OAuthLoginDto,
   LogoutResponseDto,
 } from '../types';
-import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * AuthController - handles authentication endpoints

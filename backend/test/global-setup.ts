@@ -10,16 +10,24 @@ import * as path from 'path';
 export default async function globalSetup() {
   console.log('\n🧹 Setting up test environment...\n');
 
+  // Detect if we're in CI environment (GitHub Actions, etc.)
+  const isCI =
+    process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
   // Load test environment variables from .env.test
-  // Only load if not already set (e.g., by GitHub Actions or other CI)
+  // In CI: don't override (use CI-provided variables)
+  // Locally: override to ensure test database is used
   const envTestPath = path.resolve(__dirname, '../.env.test');
-  const result = dotenv.config({ path: envTestPath, override: false });
+  const result = dotenv.config({ path: envTestPath, override: !isCI });
 
   if (result.parsed) {
     console.log(`📁 Loaded test configuration from: ${envTestPath}`);
+    console.log(
+      `🔧 Mode: ${isCI ? 'CI (respecting CI env vars)' : 'Local (override enabled)'}`,
+    );
   } else {
     console.log(
-      `📁 Using environment variables (CI mode or .env.test not found)`,
+      `📁 Using environment variables (${isCI ? 'CI mode' : 'env file not found'})`,
     );
   }
 
@@ -33,6 +41,14 @@ export default async function globalSetup() {
   if (!dbName) {
     console.error('❌ DB_NAME is not set in environment variables');
     throw new Error('DB_NAME must be set for E2E tests');
+  }
+
+  // Safety check: ensure we're using the test database
+  if (dbName === 'myapp_dev' || dbName === 'myapp_prod') {
+    console.error(
+      `❌ DANGER: Attempting to run E2E tests against ${dbName} database!`,
+    );
+    throw new Error(`E2E tests must use myapp_e2e database, not ${dbName}`);
   }
 
   try {

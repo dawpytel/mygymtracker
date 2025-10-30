@@ -34,7 +34,7 @@ import {
   ExerciseSetDto,
   SessionExerciseDto,
 } from '../types';
-import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 
 /**
  * SessionsController - handles HTTP requests for workout sessions
