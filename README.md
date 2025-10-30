@@ -1,6 +1,6 @@
 # My Gym Tracker
 
-A modern web application for tracking gym workouts, designed for experienced fitness enthusiasts who program their own workouts and need a simple yet effective tool to monitor their progress.
+A web application for tracking gym workouts, designed for experienced fitness enthusiasts who program their own workouts and need a simple yet effective tool to monitor their progress.
 
 **Live Application:** [https://mygymtracker-web.onrender.com](https://mygymtracker-web.onrender.com)
 
@@ -35,6 +35,14 @@ A modern web application for tracking gym workouts, designed for experienced fit
   - [Google OAuth Setup](#google-oauth-setup)
 - [Git Workflow](#git-workflow)
 - [License](#license)
+
+## Purpose
+
+This application was created as part of the 10xdevs training program. I have no ambitions to develop it further (although who knows), it was created purely as a hobby project.
+
+This is the first application I've created in 10 years. My last decade has been primarily spent working as an engineering leader at Jamf, where the workload and responsibilities didn't allow me to develop my skills as a programmer. In addition, in this project I worked with NodeJS and React, technologies with which I don't have professional experience.
+
+Thanks to working on this application, I learned how to work within effective way with AI: how to use it as an assistant, coder, reviewer, but also how to build an effective workflow and processes to deliver solutions. Don't confuse it with "Vibe Coding" because the work process was very well thought out, structured, and efficient.
 
 ## Overview
 
