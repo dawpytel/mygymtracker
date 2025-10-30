@@ -1,6 +1,5 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 
 // Load .env file - will be overridden by environment variables if they exist
 dotenv.config();
@@ -15,9 +14,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME!,
-  entities: [
-    isProduction ? 'dist/**/*.entity.js' : 'src/**/*.entity.ts',
-  ],
+  entities: [isProduction ? 'dist/**/*.entity.js' : 'src/**/*.entity.ts'],
   migrations: [
     isProduction ? 'dist/db/migrations/*.js' : 'src/db/migrations/*.ts',
   ],
