@@ -7,13 +7,11 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-// Remove the interface entirely if no props are needed
-// Or keep it empty for future expansion
 interface OAuthButtonsProps {
-  // Reserved for future props
+  isLoading?: boolean;
 }
 
-export function OAuthButtons({}: OAuthButtonsProps = {}) {
+export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
   const { oauthLogin } = useAuthContext();
   const navigate = useNavigate();
 
@@ -55,7 +53,11 @@ export function OAuthButtons({}: OAuthButtonsProps = {}) {
       </div>
 
       {/* Google OAuth Button */}
-      <div className="w-full">
+      <div
+        className={`w-full ${
+          isLoading ? "opacity-50 pointer-events-none" : ""
+        }`}
+      >
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
