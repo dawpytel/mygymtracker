@@ -7,8 +7,23 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security
-  app.use(helmet());
+  // Security - Configure helmet with OAuth-compatible settings
+  // Note: Cross-Origin-Opener-Policy must allow popups for OAuth flows
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com'],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'", 'https://accounts.google.com'],
+          frameSrc: ["'self'", 'https://accounts.google.com'],
+        },
+      },
+    }),
+  );
 
   // CORS configuration
   app.enableCors({
