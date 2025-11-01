@@ -47,7 +47,7 @@ export function ExerciseDialogForm({
     exercise_name: initial?.exercise_name || "",
     intensity_technique:
       initial?.intensity_technique || IntensityTechniqueEnum.NA,
-    warmup_sets: initial?.warmup_sets ?? 0,
+    warmup_sets: initial?.warmup_sets ?? 3,
     working_sets: initial?.working_sets ?? 3,
     target_reps: initial?.target_reps ?? 10,
     rpe_early: initial?.rpe_early ?? 7,
@@ -66,7 +66,7 @@ export function ExerciseDialogForm({
         exercise_name: initial?.exercise_name || "",
         intensity_technique:
           initial?.intensity_technique || IntensityTechniqueEnum.NA,
-        warmup_sets: initial?.warmup_sets ?? 0,
+        warmup_sets: initial?.warmup_sets ?? 3,
         working_sets: initial?.working_sets ?? 3,
         target_reps: initial?.target_reps ?? 10,
         rpe_early: initial?.rpe_early ?? 7,
@@ -117,8 +117,8 @@ export function ExerciseDialogForm({
     if (formData.warmup_sets !== undefined) {
       if (formData.warmup_sets < 0) {
         newErrors.warmup_sets = "Must be 0 or greater";
-      } else if (formData.warmup_sets > 100) {
-        newErrors.warmup_sets = "Must be 100 or less";
+      } else if (formData.warmup_sets > 6) {
+        newErrors.warmup_sets = "Must be 6 or less";
       }
     }
 
@@ -148,8 +148,12 @@ export function ExerciseDialogForm({
       }
     }
 
-    if (formData.rest_time !== undefined && formData.rest_time < 0) {
-      newErrors.rest_time = "Must be 0 or greater";
+    if (formData.rest_time !== undefined) {
+      if (formData.rest_time < 0) {
+        newErrors.rest_time = "Must be 0 or greater";
+      } else if (formData.rest_time > 300) {
+        newErrors.rest_time = "Must be 300 or less";
+      }
     }
 
     if (formData.notes && formData.notes.length > 500) {
@@ -325,7 +329,7 @@ export function ExerciseDialogForm({
                   id="warmup-sets"
                   type="number"
                   min="0"
-                  max="100"
+                  max="6"
                   value={formData.warmup_sets}
                   onChange={(e) =>
                     handleNumberChange("warmup_sets", e.target.value)
@@ -481,6 +485,7 @@ export function ExerciseDialogForm({
                 id="rest-time"
                 type="number"
                 min="0"
+                max="300"
                 value={formData.rest_time}
                 onChange={(e) =>
                   handleNumberChange("rest_time", e.target.value)

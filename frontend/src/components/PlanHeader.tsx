@@ -31,6 +31,9 @@ export function PlanHeader({
         autoComplete="off"
         data-lpignore="true"
         data-form-type="other"
+        data-1p-ignore="true"
+        data-bwignore="true"
+        data-dashlane-ignore="true"
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         maxLength={100}

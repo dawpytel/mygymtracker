@@ -534,14 +534,14 @@ export class PlanExerciseInputDto {
 
   @ApiProperty({
     description: 'Number of warmup sets',
-    example: 2,
+    example: 3,
     minimum: 0,
-    maximum: 100,
+    maximum: 6,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
-  @Max(100)
+  @Max(6)
   @Type(() => Number)
   warmup_sets: number;
 
@@ -601,10 +601,12 @@ export class PlanExerciseInputDto {
     description: 'Rest time between sets in seconds',
     example: 120,
     minimum: 0,
+    maximum: 300,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Max(300)
   @Type(() => Number)
   rest_time: number;
 
@@ -830,14 +832,14 @@ export class UpdatePlanExerciseDto {
 
   @ApiProperty({
     description: 'Number of warmup sets',
-    example: 2,
+    example: 3,
     minimum: 0,
-    maximum: 100,
+    maximum: 6,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
-  @Max(100)
+  @Max(6)
   warmup_sets: number;
 
   @ApiProperty({
@@ -892,10 +894,12 @@ export class UpdatePlanExerciseDto {
     description: 'Rest time between sets in seconds',
     example: 120,
     minimum: 0,
+    maximum: 300,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Max(300)
   rest_time: number;
 
   @ApiProperty({
@@ -939,20 +943,24 @@ export class CreateExerciseSetDto {
     description: 'Number of repetitions performed',
     example: 10,
     minimum: 1,
+    maximum: 100,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(1)
+  @Max(100)
   reps: number;
 
   @ApiProperty({
     description: 'Load/weight used in kilograms',
     example: 80.5,
     minimum: 0,
+    maximum: 1000,
     type: Number,
   })
   @IsNotEmpty()
   @Min(0)
+  @Max(1000)
   load: number;
 }
 
@@ -1036,22 +1044,26 @@ export class UpdateExerciseSetDto {
     description: 'Number of repetitions performed',
     example: 10,
     minimum: 1,
+    maximum: 100,
     required: false,
   })
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(100)
   reps?: number;
 
   @ApiProperty({
     description: 'Load/weight used in kilograms',
     example: 80.5,
     minimum: 0,
+    maximum: 1000,
     type: Number,
     required: false,
   })
   @IsOptional()
   @Min(0)
+  @Max(1000)
   load?: number;
 }
 

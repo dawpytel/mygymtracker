@@ -38,12 +38,15 @@ export function SetInput({ set, onChange }: SetInputProps) {
               type="number"
               inputMode="numeric"
               min="1"
+              max="100"
               step="1"
               value={set.reps ?? ""}
               onChange={(e) => {
                 const value = e.target.value;
+                const numValue = value ? parseInt(value, 10) : undefined;
                 onChange(set.setIndex, {
-                  reps: value ? parseInt(value, 10) : undefined,
+                  reps:
+                    numValue !== undefined && numValue > 100 ? 100 : numValue,
                 });
               }}
               placeholder="Reps"
@@ -66,12 +69,15 @@ export function SetInput({ set, onChange }: SetInputProps) {
               type="number"
               inputMode="decimal"
               min="0"
+              max="1000"
               step="0.5"
               value={set.load ?? ""}
               onChange={(e) => {
                 const value = e.target.value;
+                const numValue = value ? parseFloat(value) : undefined;
                 onChange(set.setIndex, {
-                  load: value ? parseFloat(value) : undefined,
+                  load:
+                    numValue !== undefined && numValue > 1000 ? 1000 : numValue,
                 });
               }}
               placeholder="Load"
@@ -87,4 +93,3 @@ export function SetInput({ set, onChange }: SetInputProps) {
     </div>
   );
 }
-
