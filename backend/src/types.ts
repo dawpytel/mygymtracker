@@ -536,11 +536,12 @@ export class PlanExerciseInputDto {
     description: 'Number of warmup sets',
     example: 2,
     minimum: 0,
-    maximum: 32767,
+    maximum: 100,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Max(100)
   @Type(() => Number)
   warmup_sets: number;
 
@@ -561,10 +562,12 @@ export class PlanExerciseInputDto {
     description: 'Target repetitions per set',
     example: 10,
     minimum: 1,
+    maximum: 100,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(1)
+  @Max(100)
   @Type(() => Number)
   target_reps: number;
 
@@ -829,10 +832,12 @@ export class UpdatePlanExerciseDto {
     description: 'Number of warmup sets',
     example: 2,
     minimum: 0,
+    maximum: 100,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(0)
+  @Max(100)
   warmup_sets: number;
 
   @ApiProperty({
@@ -851,10 +856,12 @@ export class UpdatePlanExerciseDto {
     description: 'Target repetitions per set',
     example: 10,
     minimum: 1,
+    maximum: 100,
   })
   @IsNotEmpty()
   @IsInt()
   @Min(1)
+  @Max(100)
   target_reps: number;
 
   @ApiProperty({

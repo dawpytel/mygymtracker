@@ -45,7 +45,8 @@ export function ExerciseDialogForm({
   const [formData, setFormData] = useState<Partial<PlanExerciseVM>>({
     exercise_id: initial?.exercise_id || "",
     exercise_name: initial?.exercise_name || "",
-    intensity_technique: initial?.intensity_technique || IntensityTechniqueEnum.NA,
+    intensity_technique:
+      initial?.intensity_technique || IntensityTechniqueEnum.NA,
     warmup_sets: initial?.warmup_sets ?? 0,
     working_sets: initial?.working_sets ?? 3,
     target_reps: initial?.target_reps ?? 10,
@@ -63,7 +64,8 @@ export function ExerciseDialogForm({
       setFormData({
         exercise_id: initial?.exercise_id || "",
         exercise_name: initial?.exercise_name || "",
-        intensity_technique: initial?.intensity_technique || IntensityTechniqueEnum.NA,
+        intensity_technique:
+          initial?.intensity_technique || IntensityTechniqueEnum.NA,
         warmup_sets: initial?.warmup_sets ?? 0,
         working_sets: initial?.working_sets ?? 3,
         target_reps: initial?.target_reps ?? 10,
@@ -112,8 +114,12 @@ export function ExerciseDialogForm({
       newErrors.exercise_id = "Please select an exercise";
     }
 
-    if (formData.warmup_sets !== undefined && formData.warmup_sets < 0) {
-      newErrors.warmup_sets = "Must be 0 or greater";
+    if (formData.warmup_sets !== undefined) {
+      if (formData.warmup_sets < 0) {
+        newErrors.warmup_sets = "Must be 0 or greater";
+      } else if (formData.warmup_sets > 100) {
+        newErrors.warmup_sets = "Must be 100 or less";
+      }
     }
 
     if (formData.working_sets !== undefined) {
@@ -122,8 +128,12 @@ export function ExerciseDialogForm({
       }
     }
 
-    if (formData.target_reps !== undefined && formData.target_reps < 1) {
-      newErrors.target_reps = "Must be at least 1";
+    if (formData.target_reps !== undefined) {
+      if (formData.target_reps < 1) {
+        newErrors.target_reps = "Must be at least 1";
+      } else if (formData.target_reps > 100) {
+        newErrors.target_reps = "Must be 100 or less";
+      }
     }
 
     if (formData.rpe_early !== undefined) {
@@ -215,7 +225,10 @@ export function ExerciseDialogForm({
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
             <div className="flex items-center justify-between">
-              <h2 id="exercise-dialog-title" className="text-xl font-semibold text-gray-900">
+              <h2
+                id="exercise-dialog-title"
+                className="text-xl font-semibold text-gray-900"
+              >
                 {initial ? "Edit Exercise" : "Add Exercise"}
               </h2>
               <button
@@ -312,8 +325,11 @@ export function ExerciseDialogForm({
                   id="warmup-sets"
                   type="number"
                   min="0"
+                  max="100"
                   value={formData.warmup_sets}
-                  onChange={(e) => handleNumberChange("warmup_sets", e.target.value)}
+                  onChange={(e) =>
+                    handleNumberChange("warmup_sets", e.target.value)
+                  }
                   className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                     errors.warmup_sets
                       ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -341,7 +357,9 @@ export function ExerciseDialogForm({
                   min="0"
                   max="4"
                   value={formData.working_sets}
-                  onChange={(e) => handleNumberChange("working_sets", e.target.value)}
+                  onChange={(e) =>
+                    handleNumberChange("working_sets", e.target.value)
+                  }
                   className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                     errors.working_sets
                       ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -369,8 +387,11 @@ export function ExerciseDialogForm({
                 id="target-reps"
                 type="number"
                 min="1"
+                max="100"
                 value={formData.target_reps}
-                onChange={(e) => handleNumberChange("target_reps", e.target.value)}
+                onChange={(e) =>
+                  handleNumberChange("target_reps", e.target.value)
+                }
                 className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                   errors.target_reps
                     ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -400,7 +421,9 @@ export function ExerciseDialogForm({
                   min="1"
                   max="10"
                   value={formData.rpe_early}
-                  onChange={(e) => handleNumberChange("rpe_early", e.target.value)}
+                  onChange={(e) =>
+                    handleNumberChange("rpe_early", e.target.value)
+                  }
                   className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                     errors.rpe_early
                       ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -428,7 +451,9 @@ export function ExerciseDialogForm({
                   min="1"
                   max="10"
                   value={formData.rpe_last}
-                  onChange={(e) => handleNumberChange("rpe_last", e.target.value)}
+                  onChange={(e) =>
+                    handleNumberChange("rpe_last", e.target.value)
+                  }
                   className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                     errors.rpe_last
                       ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -457,7 +482,9 @@ export function ExerciseDialogForm({
                 type="number"
                 min="0"
                 value={formData.rest_time}
-                onChange={(e) => handleNumberChange("rest_time", e.target.value)}
+                onChange={(e) =>
+                  handleNumberChange("rest_time", e.target.value)
+                }
                 className={`block w-full rounded-md shadow-sm px-4 py-2 border ${
                   errors.rest_time
                     ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -528,4 +555,3 @@ export function ExerciseDialogForm({
     </div>
   );
 }
-

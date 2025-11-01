@@ -27,6 +27,10 @@ export function PlanHeader({
       <input
         id="plan-name"
         type="text"
+        name="plan-name"
+        autoComplete="off"
+        data-lpignore="true"
+        data-form-type="other"
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         maxLength={100}
@@ -38,11 +42,17 @@ export function PlanHeader({
             ? "border-red-300 focus:border-red-500 focus:ring-red-500"
             : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
         }`}
-        aria-describedby={error ? "plan-name-error plan-name-hint" : "plan-name-hint"}
+        aria-describedby={
+          error ? "plan-name-error plan-name-hint" : "plan-name-hint"
+        }
         aria-invalid={error ? "true" : "false"}
       />
       {error && (
-        <p id="plan-name-error" className="mt-1 text-sm text-red-600" role="alert">
+        <p
+          id="plan-name-error"
+          className="mt-1 text-sm text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -52,4 +62,3 @@ export function PlanHeader({
     </div>
   );
 }
-
